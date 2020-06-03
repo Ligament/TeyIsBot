@@ -1,9 +1,5 @@
 "use strict";
 
-import {
-  client as lineClient,
-  handleEvent as lineHandleEvent,
-} from "./lineHandleEvent";
 const functions = require("firebase-functions");
 const request = require("request-promise");
 const admin = require("firebase-admin");
@@ -11,8 +7,11 @@ const spawn = require("child-process-promise").spawn;
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
+const line = require("./lineHandleEvent");
 
 admin.initializeApp();
+
+var db = admin.database();
 
 // Max height and width of the thumbnail in pixels.
 const THUMB_MAX_HEIGHT = 200;
@@ -114,8 +113,47 @@ exports.generateThumbnail = functions.storage
     return console.log("Thumbnail URLs saved to database.");
   });
 
+// exports.addRestaurantIdToUser = functions.database
+//   .ref("/users/{userId}/restaurant")
+//   .onCreate((snapshot, context) => {
+//     const restaurantName = snapshot.val();
+//     return db
+//       .ref("restaurants")
+//       .orderByChild("name")
+//       .equalTo(restaurantName)
+//       .once("value", (shot) => {
+//         const restaurant = shot.val();
+//         return snapshot.ref.parent
+//           .child("restaurant")
+//           .set({ key: Object.keys(restaurant)[0], name: restaurantName });
+//       });
+//   });
+
+exports.setLIFF = functions.database
+  .ref("/users/{userId}/role")
+  .onCreate((snapshot, context) => {
+    // Grab the current value of what was written to the Realtime Database.
+    const role = snapshot.val();
+
+    // You must return a Promise when performing asynchronous tasks inside a Functions such as
+    // writing to the Firebase Realtime Database.
+    return snapshot.ref.parent.child("lineId").once("value", (snap) => {
+      const lineId = snap.val();
+      if (lineId) {
+        const richId = db.ref("line_constance/liff");
+        richId.once("value", (shot) => {
+          var id = shot.val();
+          if (role === "customer") {
+            line.client.linkRichMenuToUser(lineId, id.customer);
+          } else {
+            line.client.linkRichMenuToUser(lineId, id.business);
+          }
+        });
+      }
+    });
+  });
+
 exports.createCustomToken = functions
-  .region("asia-northeast1")
   .runWith(runtimeOpts)
   .https.onRequest((request, response) => {
     if (request.body.access_token === undefined) {
@@ -148,6 +186,8 @@ function verifyLineToken(body) {
   })
     .then((response) => {
       if (response.client_id !== functions.config().line.channelid) {
+        console.log("response.client_id", response.client_id);
+        console.log("config", functions.config().line.channelid);
         return Promise.reject(new Error("LINE channel ID mismatched"));
       }
       return getFirebaseUser(body);
@@ -160,27 +200,126 @@ function verifyLineToken(body) {
     });
 }
 
-function getFirebaseUser(body) {
-  const firebaseUid = `line:${body.id}`;
-
+function createUser(user) {
+  var users = db.ref("users");
   return admin
     .auth()
-    .getUser(firebaseUid)
+    .createUser({
+      uid: user.userId,
+      displayName: user.displayName,
+      photoURL: user.pictureUrl,
+      email: user.email,
+    })
+    .then((userRecord) => {
+      users.child(userRecord.uid).set({
+        avatarUrl: userRecord.photoURL,
+        displayName: userRecord.displayName,
+        email: userRecord.email,
+        providerData: userRecord.providerData,
+      });
+      return userRecord;
+    });
+}
+
+function getFirebaseUser(body) {
+  return admin
+    .auth()
+    .getUserByEmail(body.email)
     .then((userRecord) => {
       return userRecord;
     })
     .catch((error) => {
       if (error.code === "auth/user-not-found") {
-        return admin.auth().createUser({
-          uid: firebaseUid,
-          displayName: body.name,
-          photoURL: body.picture,
-          email: body.email,
-        });
+        return createUser(body);
       }
       return Promise.reject(error);
     });
 }
+
+function updateUser(user) {
+  var users = db.ref("users");
+  const userRole = user.position ? user.position : "customer";
+  users.child(user.uid).update({
+    role: userRole,
+    firstName: body.firstName,
+    lastName: body.lastName,
+    restaurant: body.restaurantNameEN ? body.restaurantNameEN : "",
+  });
+  if (userRole === "owner") {
+    var restaurants = db.ref("restaurants");
+    restaurants.child(body.restaurantNameEN).set({
+      name: body.restaurantNameEN,
+      nameTH: body.restaurantNameTH,
+    });
+  }
+  const richId = db.ref("line_constance/liff");
+  richId.on("child_changed", (snapshot) => {
+    var id = snapshot.val();
+    if (userRole === "customer") {
+      client.linkRichMenuToUser(body.userId, id.customer);
+    } else {
+      client.linkRichMenuToUser(body.userId, id.business);
+    }
+  });
+}
+
+exports.businessSignUp = functions.https.onRequest((request, response) => {
+  if (request.body.uid === undefined) {
+    const ret = {
+      error_message: "User not found",
+    };
+    return response.status(400).send(ret);
+  }
+  var users = db.ref("users");
+  var restaurants = db.ref("restaurants");
+  users.child(request.body.uid).update({
+    role: request.body.position,
+    firstName: request.body.firstName,
+    lastName: request.body.lastName,
+    restaurant: request.body.restaurantNameEN,
+  });
+  if (request.body.position === "owner") {
+    var restaurant = restaurants.child(request.body.restaurantNameEN);
+    restaurant.set({
+      name: request.body.restaurantNameEN,
+      nameTH: request.body.restaurantNameTH,
+      pictureUrl: request.body.pictureUrl,
+    });
+    restaurant.child("staff").push({ id: request.body.uid });
+  } else {
+    restaurants.child("staff").push({ id: request.body.uid });
+  }
+  return response.status(200).send({ message: "success" });
+});
+
+exports.scheduledNotificationReceiveTable = functions.pubsub
+  .schedule("every 1 mins")
+  .timeZone("Asia/Bangkok")
+  .onRun((context) => {
+    db.ref("book_a_table")
+      .orderByChild("date")
+      .limitToFirst(99)
+      .once("value", (snapshot) => {
+        const nowDate = new Date();
+        snapshot.forEach((data) => {
+          const dataVal = data.val();
+          const elapsedTime = Math.floor(
+            (nowDate.getTime() - dataVal.date) / 1000 / 60 / 60
+          );
+          if (elapsedTime === -1 && dataVal.notification) {
+            data.ref.update({ notification: false });
+            if (dataVal.lineId) {
+              line.client.pushMessage(dataVal.lineId, {
+                type: "text",
+                text:
+                  "อีก 1 ชั่วโมงจะถึงเวลาที่คุณจองโต๊ะ ณ ร้าน " +
+                  String(dataVal.restaurant),
+              });
+            }
+          }
+        });
+      });
+  });
 
 //==================================================================//
 
@@ -199,7 +338,7 @@ exports.callback = functions
     }
 
     // handle events separately
-    Promise.all(request.body.events.map(lineHandleEvent))
+    Promise.all(request.body.events.map(line.handleEvent))
       .then(() => response.end())
       .catch((err) => {
         console.error(err);

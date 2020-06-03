@@ -1,5 +1,6 @@
 "use strict";
 
+const functions = require("firebase-functions");
 const line = require("@line/bot-sdk");
 const fs = require("fs");
 const path = require("path");
@@ -10,7 +11,7 @@ const lineConfig = {
   channelSecret: functions.config().line.channel_secret,
 };
 
-export const client = new line.Client(lineConfig);
+const client = new line.Client(lineConfig);
 
 // simple reply function
 const replyText = (token, texts) => {
@@ -22,7 +23,7 @@ const replyText = (token, texts) => {
 };
 
 // callback function to handle a single event
-export function handleEvent(event) {
+function handleEvent(event) {
   if (event.replyToken && event.replyToken.match(/^(.)\1*$/)) {
     return console.log("Test hook recieved: " + JSON.stringify(event.message));
   }
@@ -447,3 +448,5 @@ function handleSticker(message, replyToken) {
     stickerId: message.stickerId,
   });
 }
+
+module.exports = { client, handleEvent };

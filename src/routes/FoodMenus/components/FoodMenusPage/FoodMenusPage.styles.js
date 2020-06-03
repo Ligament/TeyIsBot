@@ -1,0 +1,21 @@
+export default theme => ({
+  root: {
+    ...theme.flexColumnCenter,
+    paddingTop: theme.spacing(4),
+    flexGrow: '2',
+    boxSizing: 'border-box',
+    // overflowY: 'scroll'
+    paddingBottom: 56
+  },
+  tiles: {
+    display: 'grid',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    '-webkit-flex-flow': 'row wrap'
+  },
+  menu: {
+    flexGrow: 1,
+    overflow: 'hidden',
+    padding: theme.spacing(0, 3),
+  }
+})
