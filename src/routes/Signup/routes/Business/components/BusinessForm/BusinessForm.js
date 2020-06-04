@@ -17,7 +17,7 @@ const positionMap = [
   { name: "พ่อครัว", role: "chef" },
   { name: "พนักงานเก็บเงิน", role: "cashier" },
   { name: "พนักงานเสิร์ฟ", role: "waiter" },
-  { name: "แม่บ้าน", role: "maid" },
+  { name: "พนักงานส่ง", role: "rider" },
 ];
 
 function BusinessForm({ pristine, submitting, handleSubmit, positionValue }) {
@@ -58,6 +58,17 @@ function BusinessForm({ pristine, submitting, handleSubmit, positionValue }) {
             label="นามสกุล"
             variant="outlined"
             validate={required}
+          />
+        </Grid>
+        <Grid item>
+          <Field
+            name="phoneNumber"
+            autoComplete="phoneNumber"
+            component={TextField}
+            label="เบอร์โทรศัพท์"
+            variant="outlined"
+            validate={required}
+            type="number"
           />
         </Grid>
         <Grid item>
@@ -134,46 +145,12 @@ function BusinessForm({ pristine, submitting, handleSubmit, positionValue }) {
             type="submit"
             variant="contained"
             disabled={pristine || submitting}
+            size="large"
           >
             {submitting ? "Loading" : "ลงทะเบียน"}
           </Button>
         </Grid>
       </Grid>
-      {/* <Field
-        name="username"
-        component={TextField}
-        autoComplete="username"
-        label="Username"
-        variant="outlined"
-        validate={required}
-      />
-      <Field
-        name="email"
-        component={TextField}
-        autoComplete="email"
-        label="Email"
-        variant="outlined"
-        validate={[required, validateEmail]}
-      />
-      <Field
-        name="password"
-        component={TextField}
-        autoComplete="current-password"
-        label="Password"
-        type="password"
-        variant="outlined"
-        validate={required}
-      /> */}
-      {/* <div className={classes.submit}>
-        <Button
-          color="primary"
-          type="submit"
-          variant="contained"
-          disabled={pristine || submitting}
-        >
-          {submitting ? "Loading" : "Sign Up"}
-        </Button>
-      </div> */}
     </form>
   );
 }

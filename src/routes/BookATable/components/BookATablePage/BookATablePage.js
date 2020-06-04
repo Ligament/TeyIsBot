@@ -76,7 +76,7 @@ function useTables({ restaurantId }) {
         tableId: table.id,
         owner: auth.uid,
         createdAt: firebase.database.ServerValue.TIMESTAMP,
-        lineId: profile.lineId,
+        lineId: profile.lineId ? profile.lineId : null,
         notification: true,
       })
       .then((snapshot) =>
@@ -99,7 +99,7 @@ function useTables({ restaurantId }) {
       );
   };
 
-  function cancelBookATable(table) {
+  function cancelBookATable(table, dialogToggle = true) {
     if (!auth.uid) {
       return showError("You must be logged in to book a table");
     }
@@ -113,7 +113,9 @@ function useTables({ restaurantId }) {
           time: null,
         })
         .then(() => {
-          toggleDialog("cancelDialogOpen")();
+          if (dialogToggle) {
+            toggleDialog("cancelDialogOpen")();
+          }
           showSuccess("Cancel reservation successfully");
         })
         .catch((err) => {
@@ -281,15 +283,15 @@ function BookATablePage(props) {
         table={selectTable}
         onRequestClose={toggleDialog("detailDialogOpen")}
         handleDelete={() => deleteTable(selectTable)}
-        handleCancel={() => cancelBookATable(selectTable)}
+        handleCancel={() => cancelBookATable(selectTable, false)}
       />
-      <DeleteTableReservationDialog
+      {/* <DeleteTableReservationDialog
         // onSubmit={editTable}
         open={dialogOpen.deleteDialogOpen}
         handleOk={() => deleteTable(selectTable)}
         onRequestClose={toggleDialog("deleteDialogOpen")}
         tableNumber={selectTable.tableNumber}
-      />
+      /> */}
       <BookATableDialog
         open={dialogOpen.confirmDialogOpen}
         onSubmit={bookATable(selectTable)}

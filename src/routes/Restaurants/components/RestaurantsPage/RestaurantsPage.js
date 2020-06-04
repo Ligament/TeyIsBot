@@ -38,6 +38,14 @@ function useRestaurants() {
       queryParams: ["orderByChild=owner", `equalTo=${auth.uid}`],
       storeAs: "bookATables",
     },
+    {
+      path: `orders/${auth.uid}/orders`,
+      storeAs: "userOrders",
+    },
+    {
+      path: `orders/${auth.uid}/ordering`,
+      storeAs: "userOrdering",
+    },
   ]);
 
   // Get projects from redux state
@@ -47,15 +55,20 @@ function useRestaurants() {
   const bookATables = useSelector(
     (state) => state.firebase.ordered.bookATables
   );
+  const userOrders = useSelector(
+    (state) => state.firebase.ordered.userOrders
+  );
+  const userOrdering = useSelector(
+    (state) => state.firebase.ordered.userOrdering
+  );
 
-  return { auth, profile, restaurants, bookATables };
+  return { auth, profile, restaurants, bookATables, userOrders, userOrdering };
 }
 
-function RestaurantsPage({ match }) {
+function RestaurantsPage({ match, history }) {
   const classes = useStyles();
-  const history = useHistory();
 
-  const { auth, profile, restaurants, bookATables } = useRestaurants();
+  const { auth, profile, restaurants, bookATables, userOrders, userOrdering } = useRestaurants();
 
   if (!(isLoaded(restaurants) && isLoaded(profile))) {
     return (
@@ -70,20 +83,20 @@ function RestaurantsPage({ match }) {
   if (!isEmpty(bookATables)) {
     const bookATableFilter = bookATables.filter(
       (bookATables, index, self) =>
-        index === self.findIndex((t) => t.value.restaurant === bookATables.value.restaurant)
+        index ===
+        self.findIndex(
+          (t) => t.value.restaurant === bookATables.value.restaurant
+        )
     );
     if (
       bookATableFilter.length &&
-      history.location.search.split("?redirect=")[1] &&
-      history.location.search.split("?redirect=")[1] !== "book-a-table"
+      history.location.state.redirect !== "/book-a-table"
     ) {
       if (bookATableFilter.length === 1) {
         history.push(
-          `${history.location.search.split("?redirect=")[1]}/${
-            bookATableFilter[0].value.restaurant
-          }`
+          `${history.location.state.redirect}/${bookATableFilter[0].value.restaurant}`
         );
-      } else {        
+      } else {
         return (
           <Switch>
             {renderChildren([FoodMenuRoute], match, { auth })}
@@ -95,15 +108,24 @@ function RestaurantsPage({ match }) {
                   <div className={classes.tiles}>
                     {!isEmpty(restaurants) &&
                       restaurants
-                        .filter(restaurant => bookATableFilter.some(f => f.value.restaurant === restaurant.value.name))
-                        .map((restaurant, ind) => (
-                          <RestaurantsCard
-                            key={`Restaurants-${restaurant.key}-${ind}`}
-                            name={restaurant.value.name}
-                            pictureUrl={restaurant.value.pictureUrl}
-                            restaurantId={restaurant.key}
-                          />
-                        ))}
+                        .filter((restaurant) =>
+                          bookATableFilter.some(
+                            (f) => f.value.restaurant === restaurant.value.name
+                          )
+                        )
+                        .map((restaurant, ind) => {
+                          if (restaurant.key === "staff") {
+                            return null;
+                          }
+                          return (
+                            <RestaurantsCard
+                              key={`Restaurants-${restaurant.key}-${ind}`}
+                              name={restaurant.value.name}
+                              pictureUrl={restaurant.value.pictureUrl}
+                              restaurantId={restaurant.key}
+                            />
+                          );
+                        })}
                   </div>
                 </div>
               )}
@@ -111,7 +133,10 @@ function RestaurantsPage({ match }) {
           </Switch>
         );
       }
-    }
+    } 
+    // else if (history.location.state.redirect  === '/order') {
+          
+    // }
   }
 
   return (
@@ -125,6 +150,9 @@ function RestaurantsPage({ match }) {
             <div className={classes.tiles}>
               {!isEmpty(restaurants) &&
                 restaurants.map((restaurant, ind) => {
+                  if (restaurant.key === "staff") {
+                    return null;
+                  }
                   return (
                     <RestaurantsCard
                       key={`Restaurants-${restaurant.key}-${ind}`}

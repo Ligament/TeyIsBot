@@ -140,6 +140,8 @@ function SignupPage({ match, location }) {
                         component={Link}
                         to="/signup/customer"
                         color="primary"
+                        size="large"
+                        style={{width: 130}}
                       >
                         Customer
                       </Button>
@@ -150,6 +152,8 @@ function SignupPage({ match, location }) {
                         component={Link}
                         to="/signup/business"
                         color="secondary"
+                        size="large"
+                        style={{width: 130}}
                       >
                         Business
                       </Button>

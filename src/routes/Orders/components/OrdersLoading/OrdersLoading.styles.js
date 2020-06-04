@@ -1,11 +1,10 @@
-export default theme => ({
+export default (theme) => ({
   root: {
     ...theme.flexColumnCenter,
     paddingTop: theme.spacing(4),
     flexGrow: '2',
     boxSizing: 'border-box',
     // overflowY: 'scroll'
-    paddingBottom: 56
   },
   tiles: {
     display: 'grid',
@@ -18,4 +17,4 @@ export default theme => ({
     overflow: 'hidden',
     padding: theme.spacing(0, 3),
   }
-})
+});

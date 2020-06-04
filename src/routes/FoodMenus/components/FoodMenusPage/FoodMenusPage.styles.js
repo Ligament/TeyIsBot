@@ -5,7 +5,7 @@ export default theme => ({
     flexGrow: '2',
     boxSizing: 'border-box',
     // overflowY: 'scroll'
-    paddingBottom: 56
+    paddingBottom: 70
   },
   tiles: {
     display: 'grid',

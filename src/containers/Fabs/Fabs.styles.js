@@ -28,8 +28,17 @@ export default (theme) => ({
     },
   },
   speedDial: {
+    position: 'fixed',
+    bottom: 56+theme.spacing(2),
+    right: theme.spacing(2),
+  },
+  speedDialLime: {
     position: 'absolute',
     bottom: 56+theme.spacing(2),
     right: theme.spacing(2),
+    '&$fab' : {
+      color: theme.palette.common.white,
+    backgroundColor: lime[500],
+    }
   },
 });

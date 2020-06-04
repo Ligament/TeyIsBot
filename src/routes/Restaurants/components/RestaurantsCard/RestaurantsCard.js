@@ -19,7 +19,7 @@ function RestaurantsCard({ name, pictureUrl, restaurantId }) {
   const history = useHistory();
      
   function goToRestaurant() {
-    return history.push(`/${history.location.search.split("?redirect=")[1]}/${restaurantId}`);
+    return history.push(`${history.location.state ? history.location.state.redirect : "/menu"}/${restaurantId}`);
   }
 
   return (

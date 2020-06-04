@@ -10,6 +10,9 @@ import NotFoundRoute from './NotFound'
 import BookATableRoute from './BookATable'
 import RestaurantsRoute from './Restaurants'
 import OrdersPageRoute from './Orders'
+import OrderingPageRoute from './Ordering'
+import OrderedPageRoute from './Ordered'
+import BillingPageRoute from './Billing'
 // import CssBaseline from "@material-ui/core/styles";
 
 export default function createRoutes(store) {
@@ -27,6 +30,9 @@ export default function createRoutes(store) {
           LoginRoute,
           BookATableRoute,
           OrdersPageRoute,
+          OrderingPageRoute,
+          OrderedPageRoute,
+          BillingPageRoute
           /* Add More Routes Here */
         ].map((settings, index) => (
           <Route key={`Route-${index}`} {...settings} />

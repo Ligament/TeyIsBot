@@ -56,7 +56,7 @@ export const UserIsNotAuthenticated = connectedRouterRedirect({
     !auth.isLoaded || !profile.isLoaded || isInitializing,
   redirectPath: (state, ownProps) =>
     locationHelper.getRedirectQueryParam(ownProps) ||
-    `${RESTAURANTS_PATH}?redirect=menu`,
+    `${RESTAURANTS_PATH}`,
   redirectAction: (newLoc) => (dispatch) => {
     // Use push, replace, and go to navigate around.
     history.push(newLoc);
@@ -84,14 +84,14 @@ export const UserIsSigned = connectedRouterRedirect({
   redirectPath: (state, ownProps) =>
     locationHelper.getRedirectQueryParam(ownProps) ||
     (state.firebase.profile.role === "customer"
-      ? `${RESTAURANTS_PATH}?redirect=menu`
+      ? `${RESTAURANTS_PATH}`
       : `/menu/${state.firebase.profile.restaurant}`),
   redirectAction: (newLoc) => (dispatch) => {
     // Use push, replace, and go to navigate around.
     history.push(newLoc);
     dispatch({
-      type: SIGNED_REDIRECT,
-      payload: { message: "User is not authenticated." },
+      type: AUTHED_REDIRECT,
+      payload: { message: "User is authenticated." },
     });
   },
 });

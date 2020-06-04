@@ -1,11 +1,9 @@
-import React, { useEffect, Fragment, useState } from "react";
-import { Link, useHistory, useLocation } from "react-router-dom";
+import React, { useEffect, Fragment } from "react";
+import { useHistory } from "react-router-dom";
 import Alert from "@material-ui/lab/Alert";
 import { makeStyles } from "@material-ui/core/styles";
 import { useSelector } from "react-redux";
 import {
-  isLoaded,
-  isEmpty,
   useFirebase,
   useFirebaseConnect,
 } from "react-redux-firebase";
@@ -18,12 +16,7 @@ import {
   LOGIN_PATH,
   RESTAURANTS_PATH,
 } from "constants/paths";
-import ViewModuleIcon from "@material-ui/icons/ViewModule";
-import MenuBookIcon from "@material-ui/icons/MenuBook";
-import RestaurantMenuIcon from "@material-ui/icons/RestaurantMenu";
-import BorderColorIcon from "@material-ui/icons/BorderColor";
 import styles from "./BottomContainer.styles";
-import { BottomNavigationAction, BottomNavigation } from "@material-ui/core";
 import Fabs from "containers/Fabs";
 import BottomNavbar from "containers/BottomNavbar";
 import NewFoodMenuDialog from "./AddFoodMenuDialog";
@@ -133,7 +126,6 @@ function BottomContainer() {
     addOrder: false,
   });
   const [value, setValue] = React.useState(0);
-  const location = useLocation();
   const history = useHistory();
 
   // Get auth from redux state
@@ -161,6 +153,9 @@ function BottomContainer() {
 
   const toggleDialog = (prop) => (event) => {
     setValues({ ...values, [prop]: !values[prop] });
+    if (prop === "ordering" || prop === "ordered" || prop === "billing") {
+      history.push(`/${prop}/${profile.restaurant}`);
+    }
   };
 
   const { addMenu, addTable } = addFoodMenus({
@@ -173,32 +168,34 @@ function BottomContainer() {
   });
 
   useEffect(() => {
-    setValue(mapPath.indexOf(`/${location.pathname.split("/")[1]}`));
-  }, [location.pathname]);
+    if (
+      history.location.pathname.split("/")[1] === "ordering" ||
+      history.location.pathname.split("/")[1] === "ordered" ||
+      history.location.pathname.split("/")[1] === "billing"
+    ) {
+      setValue(3);
+    } else {
+      setValue(mapPath.indexOf(`/${history.location.pathname.split("/")[1]}`));
+    }
+  }, [history]);
 
   function handleChange(event, value) {
     setValue(value);
     if (profile.role !== "customer") {
       history.push(`${mapPath[value]}/${profile.restaurant}`);
-      // } else if (isLoaded(bookATables) && !isEmpty(bookATables) && mapPath[value] !== BOOK_A_TABLE_PATH) {
-      //   const bookATableFilter = bookATables.filter(
-      //     (bookATables, index, self) =>
-      //       index === self.findIndex((t) => t.restaurant === bookATables.restaurant)
-      //   );
-      //   if (bookATableFilter.length) {
-      //     history.push(`${mapPath[value]}/${bookATableFilter[0].value.restaurant}`);
-      //   }
     } else {
-      history.push(
-        `${RESTAURANTS_PATH}?redirect=${mapPath[value]}`
-      );
+      history.push(`${RESTAURANTS_PATH}`, { redirect: mapPath[value] });
     }
   }
 
+  const menuHandle = (prop) => {
+    history.push(`${RESTAURANTS_PATH}`, { redirect: prop });
+  };
+
   if (
-    (location.pathname === "/" ||
-      location.pathname.includes(SIGNUP_PATH) ||
-      location.pathname.includes(LOGIN_PATH)) &&
+    (history.location.pathname === "/" ||
+      history.location.pathname.includes(SIGNUP_PATH) ||
+      history.location.pathname.includes(LOGIN_PATH)) &&
     !auth.uid
   ) {
     return null;
@@ -219,10 +216,14 @@ function BottomContainer() {
       <Fabs
         value={value}
         onClick={
-          value === 0 ? toggleDialog : toggleDialog(Object.keys(values)[value])
+          value === 1 ? toggleDialog(Object.keys(values)[value]) : toggleDialog
         }
       />
-      <BottomNavbar onChange={handleChange} value={value} />
+      <BottomNavbar
+        onChange={handleChange}
+        value={value}
+        menuHandle={menuHandle}
+      />
     </Fragment>
   );
 }

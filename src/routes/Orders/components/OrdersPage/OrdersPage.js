@@ -1,21 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import {
   isEmpty,
   isLoaded,
   useFirebase,
   useFirebaseConnect,
-  firebaseConnect,
 } from "react-redux-firebase";
-import { Route, Switch } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import { useSelector } from "react-redux";
-import FoodMenuRoute from "routes/FoodMenus/routes/FoodMenu";
 import { useNotifications } from "modules/notification";
-import { renderChildren } from "utils/router";
 import styles from "./OrdersPage.styles";
-import OrdersCard from "../OrdersCard";
-import OrdersCardLoading from "../OrdersCardLoading";
+import OrdersLoading from "../OrdersLoading";
 import {
   TableContainer,
   Table,
@@ -24,164 +20,261 @@ import {
   TableCell,
   TableBody,
   Paper,
+  Button,
 } from "@material-ui/core";
+import MaterialTable, { MTablePagination } from "material-table";
 
 const useStyles = makeStyles(styles);
 
 function useOrders({ restaurantId }) {
-  const { showSuccess, showError } = useNotifications();
   const firebase = useFirebase();
   // Get auth from redux state
   const auth = useSelector((state) => state.firebase.auth);
   const profile = useSelector((state) => state.firebase.profile);
+  const history = useHistory();
   // Attach todos listener
   useFirebaseConnect([
     {
       path: `restaurants/${restaurantId}/orders/${auth.uid}`,
       storeAs: "orders",
-      // queryParams: ['orderByChild=createdBy', `equalTo=${auth.uid}`]
     },
     {
-      path: `restaurants/${restaurantId}/orders`,
-      storeAs: "ordersCustomer",
-      // queryParams: ['orderByChild=createdBy', `equalTo=${auth.uid}`]
+      path: `restaurants/${restaurantId}/ordering`,
+      storeAs: "orderingCustomer",
     },
   ]);
 
   // Get projects from redux state
   const orders = useSelector((state) => state.firebase.ordered.orders);
-  const ordersCustomer = useSelector(
-    (state) => state.firebase.ordered.ordersCustomer
+  const orderingCustomer = useSelector(
+    (state) => state.firebase.ordered.orderingCustomer
   );
   const users = useSelector((state) => state.firebase.ordered.users);
 
-  return { auth, profile, orders, ordersCustomer, users };
+  return { firebase, auth, profile, orders, orderingCustomer, users, history };
 }
 
 function OrdersPage({ match }) {
   const classes = useStyles();
-  console.log(match.params.restaurantId);
-
-  const { auth, profile, orders, ordersCustomer, users } = useOrders({
-    restaurantId: match.params.restaurantId,
+  const restaurantId = match.params.restaurantId;
+  const {
+    firebase,
+    auth,
+    profile,
+    orders,
+    orderingCustomer,
+    users,
+    history,
+  } = useOrders({
+    restaurantId: restaurantId,
   });
 
-  if (!isLoaded(orders)) {
-    return (
-      <div className={classes.root}>
-        <div className={classes.tiles}>
-          <OrdersCardLoading />
-        </div>
-      </div>
-    );
-  }
-  if (profile.role !== "customer" && !isLoaded(ordersCustomer)) {
-    return (
-      <div className={classes.root}>
-        <div className={classes.tiles}>
-          <OrdersCardLoading />
-        </div>
-      </div>
-    );
+  const { showSuccess } = useNotifications();
+
+  if (!isLoaded(orders) && !isLoaded(orderingCustomer)) {
+    return <OrdersLoading />;
   }
 
+  // if (profile.role !== "customer") {
+  //   if (!isLoaded(orderingCustomer) && !isLoaded(users)) {
+  //     return <OrdersLoading />;
+  //   }
+  //   const usersMap = {};
+  //   if (!isEmpty(users)) {
+  //     users.forEach((element) => {
+  //       usersMap[element.key] = element.value;
+  //     });
+  //   }
+
+  //   return (
+  //     !isEmpty(orderingCustomer) &&
+  //     orderingCustomer.map((element) => {
+  //       return (
+  //         <div className={classes.root}>
+  //           <TableContainer component={Paper}>
+  //             <Table className={classes.table} aria-label="simple table">
+  //               <TableHead>
+  //                 <TableRow>
+  //                   <TableCell align="center" colSpan={3}>
+  //                     รายการอาหารของ{" "}
+  //                     {`${usersMap[element.key].firstName} ${
+  //                       usersMap[element.key].lastName
+  //                     }`}
+  //                   </TableCell>
+  //                 </TableRow>
+  //                 <TableRow>
+  //                   <TableCell>รายการอาหาร</TableCell>
+  //                   <TableCell align="right">จำนวน</TableCell>
+  //                   <TableCell align="right">ราคา</TableCell>
+  //                 </TableRow>
+  //               </TableHead>
+  //               <TableBody>
+  //                 {Object.keys(element.value).map((key) => (
+  //                   <TableRow key={element.value[key].foodName}>
+  //                     <TableCell component="th" scope="row">
+  //                       {element.value[key].foodName}
+  //                     </TableCell>
+  //                     <TableCell align="right">
+  //                       {element.value[key].count}
+  //                     </TableCell>
+  //                     <TableCell align="right">
+  //                       {element.value[key].price}
+  //                     </TableCell>
+  //                   </TableRow>
+  //                 ))}
+  //               </TableBody>
+  //             </Table>
+  //           </TableContainer>
+  //         </div>
+  //       );
+  //     })
+  //   );
+  // }
   if (profile.role !== "customer") {
-    if (!isLoaded(ordersCustomer) && !isLoaded(users)) {
-      return (
-        <div className={classes.root}>
-          <div className={classes.tiles}>
-            <OrdersCardLoading />
-          </div>
-        </div>
-      );
+    if (!isLoaded(orderingCustomer) && !isLoaded(users)) {
+      return <OrdersLoading />;
     }
     const usersMap = {};
     users.forEach((element) => {
       usersMap[element.key] = element.value;
     });
-    // console.log(usersMap);
 
     return (
-      !isEmpty(ordersCustomer) &&
-      ordersCustomer.map((element) => {
+      !isEmpty(orderingCustomer) &&
+      orderingCustomer.map((element) => {
+        var ordersData = [];
+
+        if (!isEmpty(element)) {
+          ordersData = Object.keys(element.value).map((key) => ({
+            foodName: element.value[key].foodName,
+            qty: element.value[key].count,
+            unit: parseInt(element.value[key].price.split("฿")[1]),
+            price:
+              parseInt(element.value[key].price.split("฿")[1]) *
+              parseInt(element.value[key].count),
+          }));
+        }
         return (
           <div className={classes.root}>
-            <TableContainer component={Paper}>
-              <Table className={classes.table} aria-label="simple table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>
-                      รายการอาหารของ{" "}
-                      {`${usersMap[element.key].firstName} ${
-                        usersMap[element.key].lastName
-                      }`}
-                    </TableCell>
-                    <TableCell align="right"></TableCell>
-                    <TableCell align="right"></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>รายการอาหาร</TableCell>
-                    <TableCell align="right">จำนวน</TableCell>
-                    <TableCell align="right">ราคา</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {Object.keys(element.value).map((key) => (
-                    <TableRow key={element.value[key].foodName}>
-                      <TableCell component="th" scope="row">
-                        {element.value[key].foodName}
-                      </TableCell>
-                      <TableCell align="right">{element.value[key].count}</TableCell>
-                      <TableCell align="right">{element.value[key].price}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <MaterialTable
+              title={`รายการอาหารของ ${usersMap[element.key].firstName} ${
+                usersMap[element.key].lastName
+              }`}
+              columns={[
+                { title: "รายการ", field: "foodName", editable: "never" },
+                { title: "จำนวน", field: "qty", type: "numeric" },
+                { title: "ราคาต่อหน่วย", field: "unit", editable: "never" },
+                { title: "ราคา (บาท)", field: "price", editable: "never" },
+              ]}
+              data={ordersData}
+              options={{
+                search: false,
+              }}
+              actions={[
+                {
+                  icon: "done",
+                  tooltip: "Done",
+                  isFreeAction: true,
+                  onClick: (event) => {
+                    alert("Menu is done");
+                    firebase
+                      .set(
+                        `restaurants/${restaurantId}/ordered/${element.key}`,
+                        element.value
+                      )
+                      .then(() =>
+                        firebase.remove(
+                          `restaurants/${restaurantId}/ordering/${element.key}`
+                        )
+                      );
+                  },
+                },
+              ]}
+            />
           </div>
         );
       })
     );
   }
 
+  var ordersData = [];
+  if (!isEmpty(orders)) {
+    ordersData = orders.map((order) => ({
+      foodName: order.value.foodName,
+      qty: order.value.count,
+      unit: parseInt(order.value.price.split("฿")[1]),
+      price:
+        parseInt(order.value.price.split("฿")[1]) * parseInt(order.value.count),
+      key: order.key,
+    }));
+  }
+
   return (
-    <div className={classes.root}>
-      <TableContainer component={Paper}>
-        <Table className={classes.table} aria-label="simple table">
-          <TableHead>
-            <TableRow>
-              <TableCell>รายการอาหาร</TableCell>
-              <TableCell align="right">จำนวน</TableCell>
-              <TableCell align="right">ราคา</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {!isEmpty(orders) &&
-              orders.map((order, ind) => (
-                <TableRow key={order.value.foodName}>
-                  <TableCell component="th" scope="row">
-                    {order.value.foodName}
-                  </TableCell>
-                  <TableCell align="right">{order.value.count}</TableCell>
-                  <TableCell align="right">{order.value.price}</TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {/* <div className={classes.tiles}>
-              {!isEmpty(orders) &&
-                orders.reverse().map((order, ind) => {
-                  return (
-                    <OrdersCard
-                      key={`Orders-${order.key}-${ind}`}
-                      name={order.value.foodName}
-                      orderId={order.key}
-                    />
-                  );
-                })}
-            </div> */}
-    </div>
+    <MaterialTable
+      title="รายการอาหารที่สั่ง"
+      columns={[
+        { title: "รายการ", field: "foodName", editable: "never" },
+        { title: "จำนวน", field: "qty", type: "numeric" },
+        { title: "ราคาต่อหน่วย", field: "unit", editable: "never" },
+        { title: "ราคา (บาท)", field: "price", editable: "never" },
+        { title: "", field: "key", hidden: true },
+      ]}
+      data={ordersData}
+      options={{
+        search: false,
+        
+      }}
+      editable={{
+        //isEditable: rowData => rowData.name === "birthYear",
+        onRowUpdate: (newData) =>
+          firebase.update(
+            `restaurants/${restaurantId}/orders/${auth.uid}/${newData.key}`,
+            { count: newData.qty }
+          ),
+        onRowDelete: (oldData) =>
+          firebase.remove(
+            `restaurants/${restaurantId}/orders/${auth.uid}/${oldData.key}`
+          ),
+      }}
+      components={{
+        Pagination: (props) => (
+          <div>
+            <div
+              style={{
+                margin: "10px 10px",
+                right: 0,
+                bottom: 0,
+                display: "grid",
+              }}
+            >
+              <Button
+                onClick={(event) => {
+                  history.goBack();
+                  var order = {};
+                  orders.forEach((od) => (order[od.key] = od.value));
+                  firebase
+                    .set(
+                      `restaurants/${restaurantId}/ordering/${auth.uid}`,
+                      order
+                    )
+                    .then(() =>
+                      firebase.remove(
+                        `restaurants/${restaurantId}/orders/${auth.uid}`
+                      ).then(() => showSuccess("รายการอาหารถูกส่งให้พ่อครัวแล้ว"))
+                    );
+                }}
+                color="primary"
+                variant="contained"
+                size="small"
+                disabled={isEmpty(orders)}
+              >
+                ยืนยันการสั่งอาหาร
+              </Button>
+            </div>
+          </div>
+        ),
+      }}
+    />
   );
 }
 

@@ -16,10 +16,10 @@ import styles from "./FoodMenuPage.styles";
 import {
   ButtonGroup,
   Button,
-  TextField,
   Paper,
   CardHeader,
   IconButton,
+  OutlinedInput,
 } from "@material-ui/core";
 import Skeleton from "@material-ui/lab/Skeleton";
 import AddIcon from "@material-ui/icons/Add";
@@ -31,7 +31,7 @@ const useStyles = makeStyles(styles);
 
 function MenuPage(props) {
   const classes = useStyles();
-  const [count, setCount] = React.useState(0);
+  const [count, setCount] = React.useState(1);
   const firebase = useFirebase();
   const history = useHistory();
   const auth = useSelector((state) => state.firebase.auth);
@@ -75,6 +75,9 @@ function MenuPage(props) {
 
   const handleClick = (event) => {
     if (count) {
+      firebase.set(`orders/${auth.uid}/orders/${restaurantId}`, {
+        restaurantId,
+      });
       firebase
         .push(`restaurants/${restaurantId}/orders/${auth.uid}`, {
           foodName: menu.foodName,
@@ -131,18 +134,9 @@ function MenuPage(props) {
             {(menu && menu.detail) || ""}
           </Typography>
         </CardContent>
-        {/* <CardContent>
-          <Typography className={classes.title} component="h2">
-            {menu.foodName || 'Menu'}
-          </Typography>
-
-          <div style={{ marginTop: '10rem' }}>
-            <pre>{JSON.stringify(menu, null, 2)}</pre>
-          </div>
-        </CardContent> */}
       </Card>
       {profile.role === "customer" && (
-        <Paper className={classes.order}>
+        <div className={classes.order}>
           <ButtonGroup size="small">
             <Button
               aria-label="reduce"
@@ -152,14 +146,13 @@ function MenuPage(props) {
             >
               <RemoveIcon fontSize="small" />
             </Button>
-            <TextField
+            <OutlinedInput
               id="orderCount"
-              label="จำนวน"
               type="number"
-              variant="filled"
-              size="small"
               value={count}
-            />
+              margin="dense"
+              className={classes.qty}
+            ></OutlinedInput>
             <Button
               aria-label="increase"
               onClick={() => {
@@ -169,8 +162,15 @@ function MenuPage(props) {
               <AddIcon fontSize="small" />
             </Button>
           </ButtonGroup>
-          <Button onClick={handleClick}>สั่ง</Button>
-        </Paper>
+          <Button
+            variant="contained"
+            color="primary"
+            style={{ right: 0, position: "absolute", height: 40 }}
+            onClick={handleClick}
+          >
+            สั่ง
+          </Button>
+        </div>
       )}
     </div>
   );
