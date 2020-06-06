@@ -74,64 +74,9 @@ function OrdersPage({ match }) {
   if (!isLoaded(orders) && !isLoaded(orderingCustomer)) {
     return <OrdersLoading />;
   }
-
-  // if (profile.role !== "customer") {
-  //   if (!isLoaded(orderingCustomer) && !isLoaded(users)) {
-  //     return <OrdersLoading />;
-  //   }
-  //   const usersMap = {};
-  //   if (!isEmpty(users)) {
-  //     users.forEach((element) => {
-  //       usersMap[element.key] = element.value;
-  //     });
-  //   }
-
-  //   return (
-  //     !isEmpty(orderingCustomer) &&
-  //     orderingCustomer.map((element) => {
-  //       return (
-  //         <div className={classes.root}>
-  //           <TableContainer component={Paper}>
-  //             <Table className={classes.table} aria-label="simple table">
-  //               <TableHead>
-  //                 <TableRow>
-  //                   <TableCell align="center" colSpan={3}>
-  //                     รายการอาหารของ{" "}
-  //                     {`${usersMap[element.key].firstName} ${
-  //                       usersMap[element.key].lastName
-  //                     }`}
-  //                   </TableCell>
-  //                 </TableRow>
-  //                 <TableRow>
-  //                   <TableCell>รายการอาหาร</TableCell>
-  //                   <TableCell align="right">จำนวน</TableCell>
-  //                   <TableCell align="right">ราคา</TableCell>
-  //                 </TableRow>
-  //               </TableHead>
-  //               <TableBody>
-  //                 {Object.keys(element.value).map((key) => (
-  //                   <TableRow key={element.value[key].foodName}>
-  //                     <TableCell component="th" scope="row">
-  //                       {element.value[key].foodName}
-  //                     </TableCell>
-  //                     <TableCell align="right">
-  //                       {element.value[key].count}
-  //                     </TableCell>
-  //                     <TableCell align="right">
-  //                       {element.value[key].price}
-  //                     </TableCell>
-  //                   </TableRow>
-  //                 ))}
-  //               </TableBody>
-  //             </Table>
-  //           </TableContainer>
-  //         </div>
-  //       );
-  //     })
-  //   );
-  // }
+  
   if (profile.role !== "customer") {
-    if (!isLoaded(orderingCustomer) && !isLoaded(users)) {
+    if (!isLoaded(orderingCustomer) && !isLoaded(users) && !isLoaded(orders)) {
       return <OrdersLoading />;
     }
     const usersMap = {};
@@ -171,6 +116,15 @@ function OrdersPage({ match }) {
                 search: false,
               }}
               actions={[
+                {
+                  icon: "call",
+                  tooltip: `${usersMap[element.key].phoneNumber}`,
+                  isFreeAction: true,
+                  onClick: (event) => {
+                    alert(`Call to ${usersMap[element.key].phoneNumber}`);
+                    window.open(`tel:${usersMap[element.key].phoneNumber}`);
+                  },
+                },
                 {
                   icon: "done",
                   tooltip: "Done",

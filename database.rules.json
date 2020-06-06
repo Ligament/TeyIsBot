@@ -1,6 +1,10 @@
 {
   "rules": {
-    ".read": "auth != null",
-    ".write": "auth != null"
+    "presence": {
+      ".read": "auth != null",
+    	".write": "auth != null"
+    },
+    ".read": "auth.uid != null",
+    ".write": "auth.uid != null"
   }
 }

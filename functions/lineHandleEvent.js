@@ -5,6 +5,7 @@ const line = require("@line/bot-sdk");
 const fs = require("fs");
 const path = require("path");
 const cp = require("child_process");
+const fc = require("./index")
 
 const lineConfig = {
   channelAccessToken: functions.config().line.channel_access_token,
@@ -50,9 +51,11 @@ function handleEvent(event) {
     }
 
     case "follow":
-      return replyText(event.replyToken, "Got followed event");
+      return replyText(event.replyToken, "ยินดีต้อนรับสู่ Let eat.\nคุณสามารถหาร้านค้าและจองโต๊ะอาหารพร้อมสั่งอาหราล่วงหน้าได้");
 
     case "unfollow":
+      client.unlinkRichMenusFromMultipleUsers([event.source.userId]);
+      fc.removeUser(event.source.userId);
       return console.log(`Unfollowed this bot: ${JSON.stringify(event)}`);
 
     case "join":

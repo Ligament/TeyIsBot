@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { Link, useHistory, Route, Switch } from "react-router-dom";
+import React, { useEffect, useState, Fragment } from "react";
+import { Link, useHistory, Route, Switch, Redirect } from "react-router-dom";
 import GoogleButton from "react-google-button";
 import Paper from "@material-ui/core/Paper";
 import { useFirebase, isLoaded, isEmpty } from "react-redux-firebase";
 import { makeStyles } from "@material-ui/core/styles";
-import { LOGIN_PATH, SIGNUP_PATH } from "constants/paths";
+import { LOGIN_PATH, SIGNUP_PATH, SIGNUP_ROLE_PATH } from "constants/paths";
 import { useNotifications } from "modules/notification";
 import SignupForm from "../SignupForm";
 import styles from "./SignupPage.styles";
@@ -13,11 +13,10 @@ import liff from "utils/liff";
 import { line } from "config";
 import lineLoginButton from "static/btn_base.png";
 import { renderChildren } from "utils/router";
-import CustomerSignup from "routes/Signup/routes/Customer";
-import BusinessSignup from "routes/Signup/routes/Business";
 import { useSelector } from "react-redux";
 import { getFirebaseToken } from "store/user";
 import LoadingSpinner from "components/LoadingSpinner";
+import SelectRole from "routes/Signup/routes/SelectRole";
 
 const useStyles = makeStyles(styles);
 
@@ -49,37 +48,34 @@ function SignupPage({ match, location }) {
       redirectUri: "https://" + window.location.hostname + SIGNUP_PATH,
     });
 
-  useEffect(() => {
-    if (!liff.isInit()) {
-      return <LoadingSpinner />;
-    } else {
-      if (liff.isLoggedIn() && values.oneTimeLogin) {
-        setValues({ isLoaded: false, oneTimeLogin: false });
-        liff.getProfile().then((profile) =>
-          getFirebaseToken(profile)
-            .then((data) =>
-              firebase
-                .login({
-                  token: data.firebase_token,
-                })
-                .then(({ user: { user } }) =>
-                  firebase
-                    .update(`users/${user.uid}/`, {
-                      lineId: profile.userId,
-                    })
-                    .then(() => setValues({ isLoaded: true }))
-                )
-            )
-            .catch((err) => {
-              console.log("err", err);
-              setValues({ isLoaded: true });
+  if (!liff.isInit()) {
+    return <LoadingSpinner />;
+  }
+  if (liff.isLoggedIn() && values.oneTimeLogin) {
+    setValues({ isLoaded: false, oneTimeLogin: false });
+    liff.getProfile().then((profile) =>
+      getFirebaseToken(profile)
+        .then((data) =>
+          firebase
+            .login({
+              token: data.firebase_token,
             })
-        );
-      } else if (!liff.isLoggedIn() && values.oneTimeLogin) {
-        setValues({ isLoaded: true, oneTimeLogin: false });
-      }
-    }
-  }, [firebase, values]);
+            .then(({ user: { user } }) =>
+              firebase
+                .update(`users/${user.uid}/`, {
+                  lineId: profile.userId,
+                })
+                .then(() => setValues({ isLoaded: true }))
+            )
+        )
+        .catch((err) => {
+          console.log("err", err);
+          setValues({ isLoaded: true });
+        })
+    );
+  } else if (!liff.isLoggedIn() && values.oneTimeLogin) {
+    setValues({ isLoaded: true, oneTimeLogin: false });
+  }
 
   if (!values.isLoaded) {
     return <LoadingSpinner />;
@@ -87,12 +83,13 @@ function SignupPage({ match, location }) {
 
   return (
     <Switch>
-      {renderChildren([CustomerSignup, BusinessSignup], match)}
+      {renderChildren([SelectRole], match)}
       <Route
         exact
         path={match.path}
-        render={() =>
-          isEmpty(auth) ? (
+        render={() => (
+          <Fragment>
+            {auth.uid && <Redirect to={SIGNUP_ROLE_PATH} />}
             <div className={classes.root}>
               <div className={classes.providers}>
                 <ButtonBase className={classes.loginButton} onClick={lineLogin}>
@@ -123,47 +120,8 @@ function SignupPage({ match, location }) {
                 />
               </Paper>
             </div>
-          ) : (
-            <div className={classes.root}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Grid
-                    container
-                    direction="column"
-                    justify="center"
-                    alignItems="center"
-                    spacing={3}
-                  >
-                    <Grid item>
-                      <Button
-                        variant="contained"
-                        component={Link}
-                        to="/signup/customer"
-                        color="primary"
-                        size="large"
-                        style={{width: 130}}
-                      >
-                        Customer
-                      </Button>
-                    </Grid>
-                    <Grid item>
-                      <Button
-                        variant="contained"
-                        component={Link}
-                        to="/signup/business"
-                        color="secondary"
-                        size="large"
-                        style={{width: 130}}
-                      >
-                        Business
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </Grid>
-              </Grid>
-            </div>
-          )
-        }
+          </Fragment>
+        )}
       />
     </Switch>
   );

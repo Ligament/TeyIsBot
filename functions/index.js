@@ -12,6 +12,7 @@ const line = require("./lineHandleEvent");
 admin.initializeApp();
 
 var db = admin.database();
+var users = db.ref("users");
 
 // Max height and width of the thumbnail in pixels.
 const THUMB_MAX_HEIGHT = 200;
@@ -201,7 +202,6 @@ function verifyLineToken(body) {
 }
 
 function createUser(user) {
-  var users = db.ref("users");
   return admin
     .auth()
     .createUser({
@@ -209,6 +209,7 @@ function createUser(user) {
       displayName: user.displayName,
       photoURL: user.pictureUrl,
       email: user.email,
+      phoneNumber: user.phoneNumber,
     })
     .then((userRecord) => {
       users.child(userRecord.uid).set({
@@ -237,7 +238,6 @@ function getFirebaseUser(body) {
 }
 
 function updateUser(user) {
-  var users = db.ref("users");
   const userRole = user.position ? user.position : "customer";
   users.child(user.uid).update({
     role: userRole,
@@ -270,7 +270,6 @@ exports.businessSignUp = functions.https.onRequest((request, response) => {
     };
     return response.status(400).send(ret);
   }
-  var users = db.ref("users");
   var restaurants = db.ref("restaurants");
   users.child(request.body.uid).update({
     role: request.body.position,
@@ -345,3 +344,21 @@ exports.callback = functions
         response.status(500).end();
       });
   });
+
+exports.removeUser = (uid) => {
+  admin
+    .auth()
+    .deleteUser(uid)
+    .then(() => {
+      const richId = db.ref("line_constance/liff");
+      richId.once("value", (shot) => {
+        var id = shot.val();
+        line.client.linkRichMenuToUser(lineId, id.signup);
+      });
+      users.child(uid).remove();
+      return console.log("Successfully deleted user");
+    })
+    .catch((error) => {
+      return console.log("Error deleting user:", error);
+    });
+};

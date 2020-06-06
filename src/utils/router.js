@@ -4,7 +4,8 @@ import { connectedRouterRedirect } from "redux-auth-wrapper/history4/redirect";
 import locationHelperBuilder from "redux-auth-wrapper/history4/locationHelper";
 import { createBrowserHistory } from "history";
 import LoadingSpinner from "components/LoadingSpinner";
-import { FOOD_MENU_PATH, SIGNUP_PATH, RESTAURANTS_PATH } from "constants/paths";
+import { FOOD_MENU_PATH, SIGNUP_PATH, RESTAURANTS_PATH, SIGNUP_ROLE_PATH } from "constants/paths";
+import liff from "./liff";
 
 const locationHelper = locationHelperBuilder({});
 const history = createBrowserHistory();
@@ -61,7 +62,7 @@ export const UserIsNotAuthenticated = connectedRouterRedirect({
     // Use push, replace, and go to navigate around.
     history.push(newLoc);
     dispatch({
-      type: AUTHED_REDIRECT,
+      type: UNAUTHED_REDIRECT,
       payload: { message: "User is not authenticated." },
     });
   },
@@ -80,17 +81,13 @@ export const UserIsSigned = connectedRouterRedirect({
   // Want to redirect the user when they are done loading and authenticated
   authenticatedSelector: ({ firebase: { auth, profile } }) => !profile.role,
   authenticatingSelector: ({ firebase: { auth, profile, isInitializing } }) =>
-    !auth.isLoaded || !profile.isLoaded || isInitializing,
-  redirectPath: (state, ownProps) =>
-    locationHelper.getRedirectQueryParam(ownProps) ||
-    (state.firebase.profile.role === "customer"
-      ? `${RESTAURANTS_PATH}`
-      : `/menu/${state.firebase.profile.restaurant}`),
+    !auth.isLoaded || !profile.isLoaded || isInitializing || !liff.isInit(),
+  redirectPath: (state, ownProps) => SIGNUP_ROLE_PATH,
   redirectAction: (newLoc) => (dispatch) => {
     // Use push, replace, and go to navigate around.
     history.push(newLoc);
     dispatch({
-      type: AUTHED_REDIRECT,
+      type: UNAUTHED_REDIRECT,
       payload: { message: "User is authenticated." },
     });
   },

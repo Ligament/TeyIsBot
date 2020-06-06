@@ -106,7 +106,6 @@ function App({ routes, store }) {
             firebase={firebase}
             config={rfConfig}
             dispatch={store.dispatch}
-            // createFirestoreInstance={createFirestoreInstance}
           >
             <Router>{routes}</Router>
           </ReactReduxFirebaseProvider>

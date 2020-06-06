@@ -3,10 +3,7 @@ import { useHistory } from "react-router-dom";
 import Alert from "@material-ui/lab/Alert";
 import { makeStyles } from "@material-ui/core/styles";
 import { useSelector } from "react-redux";
-import {
-  useFirebase,
-  useFirebaseConnect,
-} from "react-redux-firebase";
+import { useFirebase, useFirebaseConnect } from "react-redux-firebase";
 import {
   BOOK_A_TABLE_PATH,
   FOOD_MENU_PATH,
@@ -193,10 +190,11 @@ function BottomContainer() {
   };
 
   if (
-    (history.location.pathname === "/" ||
-      history.location.pathname.includes(SIGNUP_PATH) ||
-      history.location.pathname.includes(LOGIN_PATH)) &&
-    !auth.uid
+    history.location.pathname === "/" ||
+    history.location.pathname.includes(SIGNUP_PATH) ||
+    history.location.pathname.includes(LOGIN_PATH) ||
+    !auth.uid ||
+    !profile.role
   ) {
     return null;
   }

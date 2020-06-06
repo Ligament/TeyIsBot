@@ -88,52 +88,55 @@ function RestaurantsPage({ match, history }) {
           (t) => t.value.restaurant === bookATables.value.restaurant
         )
     );
-    if (
-      bookATableFilter.length &&
-      history.location.state.redirect !== "/book-a-table"
-    ) {
-      if (bookATableFilter.length === 1) {
-        history.push(
-          `${history.location.state.redirect}/${bookATableFilter[0].value.restaurant}`
-        );
-      } else {
-        return (
-          <Switch>
-            {renderChildren([FoodMenuRoute], match, { auth })}
-            <Route
-              exact
-              path={match.path}
-              render={() => (
-                <div className={classes.root}>
-                  <div className={classes.tiles}>
-                    {!isEmpty(restaurants) &&
-                      restaurants
-                        .filter((restaurant) =>
-                          bookATableFilter.some(
-                            (f) => f.value.restaurant === restaurant.value.name
+    if (history.location.state) {
+      if (
+        bookATableFilter.length &&
+        history.location.state.redirect !== "/book-a-table"
+      ) {
+        if (bookATableFilter.length === 1) {
+          history.push(
+            `${history.location.state.redirect}/${bookATableFilter[0].value.restaurant}`
+          );
+        } else {
+          return (
+            <Switch>
+              {renderChildren([FoodMenuRoute], match, { auth })}
+              <Route
+                exact
+                path={match.path}
+                render={() => (
+                  <div className={classes.root}>
+                    <div className={classes.tiles}>
+                      {!isEmpty(restaurants) &&
+                        restaurants
+                          .filter((restaurant) =>
+                            bookATableFilter.some(
+                              (f) => f.value.restaurant === restaurant.value.name
+                            )
                           )
-                        )
-                        .map((restaurant, ind) => {
-                          if (restaurant.key === "staff") {
-                            return null;
-                          }
-                          return (
-                            <RestaurantsCard
-                              key={`Restaurants-${restaurant.key}-${ind}`}
-                              name={restaurant.value.name}
-                              pictureUrl={restaurant.value.pictureUrl}
-                              restaurantId={restaurant.key}
-                            />
-                          );
-                        })}
+                          .map((restaurant, ind) => {
+                            if (restaurant.key === "staff") {
+                              return null;
+                            }
+                            return (
+                              <RestaurantsCard
+                                key={`Restaurants-${restaurant.key}-${ind}`}
+                                name={restaurant.value.name}
+                                pictureUrl={restaurant.value.pictureUrl}
+                                restaurantId={restaurant.key}
+                              />
+                            );
+                          })}
+                    </div>
                   </div>
-                </div>
-              )}
-            />
-          </Switch>
-        );
+                )}
+              />
+            </Switch>
+          );
+        }
       }
-    } 
+    }
+     
     // else if (history.location.state.redirect  === '/order') {
           
     // }

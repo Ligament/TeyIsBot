@@ -80,7 +80,7 @@ function OrderedPage({ match }) {
   }
 
   if (profile.role !== "customer") {
-    if (!isLoaded(billingCustomer) && !isLoaded(users)) {
+    if (!isLoaded(billingCustomer) && !isLoaded(users) && (!isLoaded(billingCustomer))) {
       return <OrdersLoading />;
     }
     const usersMap = {};
@@ -121,6 +121,15 @@ function OrderedPage({ match }) {
                 paging: false
               }}
               actions={[
+                {
+                  icon: "call",
+                  tooltip: `${usersMap[element.key].phoneNumber}`,
+                  isFreeAction: true,
+                  onClick: (event) => {
+                    alert(`Call to ${usersMap[element.key].phoneNumber}`);
+                    window.open(`tel:${usersMap[element.key].phoneNumber}`);
+                  },
+                },
                 {
                   icon: "done_all",
                   tooltip: "ยืนยันการจ่ายเงิน",

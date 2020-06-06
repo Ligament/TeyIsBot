@@ -31,53 +31,43 @@ function BottomNavbar({ onChange, value, menuHandle }) {
     menuHandle(target);
   };
 
-  if (profile.isLoaded && !profile.isEmpty) {
-    const role = profile.role;
-    if (role !== "customer") {
-      return (
-        <BottomNavigation
-          value={value}
-          onChange={onChange}
-          showLabels
-          className={classes.root}
-        >
+  if (!profile.isLoaded && profile.isEmpty) {
+    return null;
+  }
+
+  const role = profile.role;
+  if (role !== "customer") {
+    return (
+      <BottomNavigation
+        value={value}
+        onChange={onChange}
+        showLabels
+        className={classes.root}
+      >
+        {(role !== "rider" && role !== "chef") && (
           <BottomNavigationAction
             key="book-a-table"
             label="จัดโต๊ะ"
             value={0}
             icon={<ViewModuleIcon />}
           />
+        )}
+        {role !== "rider" && (
           <BottomNavigationAction
             key="food-menu"
             label="รายการอาหาร"
             value={1}
             icon={<MenuBookIcon />}
           />
-          {/* {(role === "waiter" ||
-              role === "cashier" ||
-              role === "owner" ||
-              role === "admin") && (
-              <BottomNavigationAction
-                key="receive-order"
-                label="รับรายการอาหาร"
-                value={2}
-                icon={<BorderColorIcon />}
-              />
-            )} */}
-          {(role === "chef" ||
-            role === "cashier" ||
-            role === "owner" ||
-            role === "admin") && (
-            <BottomNavigationAction
-              key="order"
-              label="อาหารที่ลูกค้าสั่ง"
-              value={3}
-              icon={<RestaurantMenuIcon />}
-            />
-          )}
-        </BottomNavigation>
-      );
-    }
+        )}
+        <BottomNavigationAction
+          key="order"
+          label="อาหารที่ลูกค้าสั่ง"
+          value={3}
+          icon={<RestaurantMenuIcon />}
+        />
+      </BottomNavigation>
+    );
   }
 
   return (
