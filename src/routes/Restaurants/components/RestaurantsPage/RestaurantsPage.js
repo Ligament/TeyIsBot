@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
   isEmpty,
@@ -30,7 +30,7 @@ function useRestaurants() {
   useFirebaseConnect([
     {
       path: "restaurants",
-      queryParams: ["limitToLast=50"],
+      queryParams: ["orderByChild=name"],
       // queryParams: ['orderByChild=createdBy', `equalTo=${auth.uid}`]
     },
     {
@@ -39,12 +39,16 @@ function useRestaurants() {
       storeAs: "bookATables",
     },
     {
-      path: `orders/${auth.uid}/orders`,
+      path: `orders_process/${auth.uid}/orders`,
       storeAs: "userOrders",
     },
     {
-      path: `orders/${auth.uid}/ordering`,
+      path: `orders_process/${auth.uid}/ordering`,
       storeAs: "userOrdering",
+    },
+    {
+      path: `orders_process/${auth.uid}/ordered`,
+      storeAs: "userOrdered",
     },
   ]);
 
@@ -55,91 +59,161 @@ function useRestaurants() {
   const bookATables = useSelector(
     (state) => state.firebase.ordered.bookATables
   );
-  const userOrders = useSelector(
-    (state) => state.firebase.ordered.userOrders
-  );
+  const userOrders = useSelector((state) => state.firebase.ordered.userOrders);
   const userOrdering = useSelector(
     (state) => state.firebase.ordered.userOrdering
   );
+  const userOrdered = useSelector(
+    (state) => state.firebase.ordered.userOrdered
+  );
 
-  return { auth, profile, restaurants, bookATables, userOrders, userOrdering };
+  return {
+    auth,
+    profile,
+    restaurants,
+    bookATables,
+    userOrders,
+    userOrdering,
+    userOrdered,
+  };
 }
+
+const Loading = ({ classes }) => (
+  <div className={classes.root}>
+    <div className={classes.tiles}>
+      <RestaurantsCardLoading />
+    </div>
+  </div>
+);
+
+Loading.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
+
+const DisplayWithFilter = ({ filter, data }) => {
+  return (
+    <React.Fragment>
+      {!isEmpty(data) &&
+        data
+          .filter((restaurant) =>
+            filter.some((f) => f.value.restaurant === restaurant.value.name)
+          )
+          .map(
+            (restaurant, ind) =>
+              restaurant.key !== "staff" && (
+                <RestaurantsCard
+                  key={`Restaurants-${restaurant.key}-${ind}`}
+                  name={restaurant.value.name}
+                  pictureUrl={restaurant.value.pictureUrl}
+                  restaurantId={restaurant.key}
+                />
+              )
+          )}
+    </React.Fragment>
+  );
+};
+
+DisplayWithFilter.propTypes = {
+  filter: PropTypes.object.isRequired,
+  data: PropTypes.object.isRequired,
+};
+
+function FilterDisplay({
+  redirect,
+  restaurants,
+  bookATableFilter,
+  userOrders,
+  userOrdering,
+  userOrdered,
+  classes,
+}) {
+  if (redirect === "/menu") {
+    return <DisplayWithFilter filter={bookATableFilter} data={restaurants} />;
+  } else if (redirect === "/order") {
+    if (!isLoaded(userOrders)) return <Loading classes={classes} />;
+    return (
+      !isEmpty(userOrders) && (
+        <DisplayWithFilter filter={userOrders} data={restaurants} />
+      )
+    );
+  } else if (redirect === "/ordering") {
+    if (!isLoaded(userOrdering)) return <Loading classes={classes} />;
+    return (
+      !isEmpty(userOrdering) && (
+        <DisplayWithFilter filter={userOrdering} data={restaurants} />
+      )
+    );
+  } else if (redirect === "/ordered") {
+    if (!isLoaded(userOrdered)) return <Loading classes={classes} />;
+    return (
+      !isEmpty(userOrdered) && (
+        <DisplayWithFilter filter={userOrdered} data={restaurants} />
+      )
+    );
+  } else {
+    return (
+      <React.Fragment>
+        {!isEmpty(restaurants) &&
+          restaurants.map((restaurant, ind) => {
+            return (
+              restaurant.key !== "staff" && (
+                <RestaurantsCard
+                  key={`Restaurants-${restaurant.key}-${ind}`}
+                  name={restaurant.value.name}
+                  pictureUrl={restaurant.value.pictureUrl}
+                  restaurantId={restaurant.key}
+                />
+              )
+            );
+          })}
+      </React.Fragment>
+    );
+  }
+}
+
+FilterDisplay.propTypes = {
+  redirect: PropTypes.object.isRequired,
+  restaurants: PropTypes.object.isRequired,
+  bookATableFilter: PropTypes.object.isRequired,
+  userOrders: PropTypes.object.isRequired,
+  userOrdering: PropTypes.object.isRequired,
+  userOrdered: PropTypes.object.isRequired,
+  classes: PropTypes.object.isRequired,
+};
 
 function RestaurantsPage({ match, history }) {
   const classes = useStyles();
 
-  const { auth, profile, restaurants, bookATables, userOrders, userOrdering } = useRestaurants();
+  const {
+    auth,
+    profile,
+    restaurants,
+    bookATables,
+    userOrders,
+    userOrdering,
+    userOrdered,
+  } = useRestaurants();
 
-  if (!(isLoaded(restaurants) && isLoaded(profile))) {
-    return (
-      <div className={classes.root}>
-        <div className={classes.tiles}>
-          <RestaurantsCardLoading />
-        </div>
-      </div>
-    );
-  }
+  var bookATableFilter = [];
+
+  if (!isLoaded(restaurants) || !isLoaded(profile))
+    return <Loading classes={classes} />;
+
+  if (!isLoaded(bookATables)) return <Loading classes={classes} />;
 
   if (!isEmpty(bookATables)) {
-    const bookATableFilter = bookATables.filter(
+    bookATableFilter = bookATables.filter(
       (bookATables, index, self) =>
         index ===
         self.findIndex(
           (t) => t.value.restaurant === bookATables.value.restaurant
         )
     );
-    if (history.location.state) {
-      if (
-        bookATableFilter.length &&
-        history.location.state.redirect !== "/book-a-table"
-      ) {
-        if (bookATableFilter.length === 1) {
-          history.push(
-            `${history.location.state.redirect}/${bookATableFilter[0].value.restaurant}`
-          );
-        } else {
-          return (
-            <Switch>
-              {renderChildren([FoodMenuRoute], match, { auth })}
-              <Route
-                exact
-                path={match.path}
-                render={() => (
-                  <div className={classes.root}>
-                    <div className={classes.tiles}>
-                      {!isEmpty(restaurants) &&
-                        restaurants
-                          .filter((restaurant) =>
-                            bookATableFilter.some(
-                              (f) => f.value.restaurant === restaurant.value.name
-                            )
-                          )
-                          .map((restaurant, ind) => {
-                            if (restaurant.key === "staff") {
-                              return null;
-                            }
-                            return (
-                              <RestaurantsCard
-                                key={`Restaurants-${restaurant.key}-${ind}`}
-                                name={restaurant.value.name}
-                                pictureUrl={restaurant.value.pictureUrl}
-                                restaurantId={restaurant.key}
-                              />
-                            );
-                          })}
-                    </div>
-                  </div>
-                )}
-              />
-            </Switch>
-          );
-        }
-      }
-    }
-     
-    // else if (history.location.state.redirect  === '/order') {
-          
-    // }
+    if (bookATableFilter.length === 1 && history.location.state)
+      history.push(
+        `${history.location.state.redirect}/${bookATableFilter[0].value.restaurant}`,
+        {redirect: history.location.state.redirect}
+      );
   }
 
   return (
@@ -151,20 +225,15 @@ function RestaurantsPage({ match, history }) {
         render={() => (
           <div className={classes.root}>
             <div className={classes.tiles}>
-              {!isEmpty(restaurants) &&
-                restaurants.map((restaurant, ind) => {
-                  if (restaurant.key === "staff") {
-                    return null;
-                  }
-                  return (
-                    <RestaurantsCard
-                      key={`Restaurants-${restaurant.key}-${ind}`}
-                      name={restaurant.value.name}
-                      pictureUrl={restaurant.value.pictureUrl}
-                      restaurantId={restaurant.key}
-                    />
-                  );
-                })}
+              <FilterDisplay
+                redirect={history.location.state ? history.location.state.redirect : "/menu"}
+                restaurants={restaurants}
+                bookATableFilter={bookATableFilter}
+                userOrders={userOrders}
+                userOrdering={userOrdering}
+                userOrdered={userOrdered}
+                classes={classes}
+              />
             </div>
           </div>
         )}

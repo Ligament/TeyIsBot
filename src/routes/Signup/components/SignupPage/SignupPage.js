@@ -1,4 +1,5 @@
 import React, { useEffect, useState, Fragment } from "react";
+import PropTypes from "prop-types";
 import { Link, useHistory, Route, Switch, Redirect } from "react-router-dom";
 import GoogleButton from "react-google-button";
 import Paper from "@material-ui/core/Paper";
@@ -20,7 +21,7 @@ import SelectRole from "routes/Signup/routes/SelectRole";
 
 const useStyles = makeStyles(styles);
 
-function SignupPage({ match, location }) {
+function SignupPage({ match }) {
   const classes = useStyles();
   const firebase = useFirebase();
 
@@ -48,9 +49,10 @@ function SignupPage({ match, location }) {
       redirectUri: "https://" + window.location.hostname + SIGNUP_PATH,
     });
 
-  if (!liff.isInit()) {
-    return <LoadingSpinner />;
-  }
+  if (!liff.isInit()) return <LoadingSpinner />;
+
+  console.log(auth, liff.isInit());
+
   if (liff.isLoggedIn() && values.oneTimeLogin) {
     setValues({ isLoaded: false, oneTimeLogin: false });
     liff.getProfile().then((profile) =>
@@ -70,6 +72,7 @@ function SignupPage({ match, location }) {
         )
         .catch((err) => {
           console.log("err", err);
+          showError("Line ของคุณไม่ได้ลงทะเบียน E-mail ไว้กรุณาลงทะเบียน E-mail หรือลงทะเบียนด้วยวิธีอื่น")
           setValues({ isLoaded: true });
         })
     );
@@ -127,8 +130,8 @@ function SignupPage({ match, location }) {
   );
 }
 
-// SignupPage.propTypes = {
-//   match: PropTypes.object.isRequired, // from enhancer (withRouter)
-// };
+SignupPage.propTypes = {
+  match: PropTypes.object.isRequired, // from enhancer (withRouter)
+};
 
 export default SignupPage;

@@ -23,8 +23,8 @@ import {
   Paper,
   Button,
 } from "@material-ui/core";
-import OrdersLoading from "routes/Orders/components/OrdersLoading";
 import MaterialTable from "material-table";
+import OrdersLoading from "components/OrdersLoading";
 
 const useStyles = makeStyles(styles);
 
@@ -72,12 +72,71 @@ function BillingPage({ match }) {
     restaurantId: restaurantId,
   });
 
-  if (!isLoaded(billing)) {
-    return <OrdersLoading />;
+  if (!isLoaded(profile)) return <OrdersLoading />;
+
+  function ccyFormat(num) {
+    return `${num.toFixed(2)}`;
   }
-  if (profile.role !== "customer" && !isLoaded(billingCustomer)) {
-    return <OrdersLoading />;
+
+  function priceUnit(price) {
+    return parseInt(price.split("฿")[1]);
   }
+
+  function priceRow(qty, price) {
+    return qty * priceUnit(price);
+  }
+
+  var total = 0;
+
+  const tableView = (orders, showOwner = false, usersData = {}) => (
+    <TableContainer
+      component={Paper}
+      style={{ width: "100%", maxWidth: 768, marginBottom: 16 }}
+    >
+      <Table aria-label="ordering table">
+        <TableHead>
+          {showOwner && (
+            <TableRow>
+              <TableCell>
+                รายการอาหารของ {`${usersData.firstName} ${usersData.lastName}`}
+              </TableCell>
+              <TableCell align="right"></TableCell>
+              <TableCell align="right"></TableCell>
+            </TableRow>
+          )}
+          <TableRow>
+            <TableCell>รายการอาหาร</TableCell>
+            <TableCell align="right">จำนวน</TableCell>
+            <TableCell align="right">ราคาต่อหน่วย</TableCell>
+            <TableCell align="right">ราคา (บาท)</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {Object.keys(orders).map((key) => {
+            const pricePerRow = priceRow(orders[key].count, orders[key].price);
+            total += pricePerRow;
+            return (
+              <TableRow key={orders[key].foodName}>
+                <TableCell component="th" scope="row">
+                  {orders[key].foodName}
+                </TableCell>
+                <TableCell align="right">{orders[key].count}</TableCell>
+                <TableCell align="right">
+                  {priceUnit(orders[key].price)}
+                </TableCell>
+                <TableCell align="right">{ccyFormat(pricePerRow)}</TableCell>
+              </TableRow>
+            );
+          })}
+          <TableRow>
+            <TableCell />
+            <TableCell colSpan={2}>Total</TableCell>
+            <TableCell align="right">{ccyFormat(total)}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
 
   if (profile.role !== "customer") {
     if (!isLoaded(billingCustomer) && !isLoaded(users)) {
@@ -88,80 +147,100 @@ function BillingPage({ match }) {
       usersMap[element.key] = element.value;
     });
 
-    return (
-      !isEmpty(billingCustomer) &&
-      billingCustomer.map((element) => {
-        return (
-          <div className={classes.root}>
-            <TableContainer component={Paper}>
-              <Table className={classes.table} aria-label="billing c table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>
-                      รายการอาหารของ{" "}
-                      {`${usersMap[element.key].firstName} ${
-                        usersMap[element.key].lastName
-                      }`}
-                    </TableCell>
-                    <TableCell align="right"></TableCell>
-                    <TableCell align="right"></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>รายการอาหาร</TableCell>
-                    <TableCell align="right">จำนวน</TableCell>
-                    <TableCell align="right">ราคา</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {Object.keys(element.value).map((key) => (
-                    <TableRow key={element.value[key].foodName}>
-                      <TableCell component="th" scope="row">
-                        {element.value[key].foodName}
-                      </TableCell>
-                      <TableCell align="right">
-                        {element.value[key].count}
-                      </TableCell>
-                      <TableCell align="right">
-                        {element.value[key].price}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </div>
-        );
-      })
-    );
+    if (!isEmpty(billingCustomer)) {
+      return (
+        <div className={classes.root}>
+          {billingCustomer.map((billc) =>
+            Object.keys(billc.value).map((key) =>
+              tableView(billc.value[key], true, usersMap[billc.key])
+            )
+          )}
+        </div>
+      );
+    }
+
+    // return (
+    //   !isEmpty(billingCustomer) &&
+    //   billingCustomer.map((element) => {
+    //     return (
+    //       <div className={classes.root}>
+    //         <TableContainer component={Paper}>
+    //           <Table className={classes.table} aria-label="billing c table">
+    //             <TableHead>
+    //               <TableRow>
+    //                 <TableCell>
+    //                   รายการอาหารของ{" "}
+    //                   {`${usersMap[element.key].firstName} ${
+    //                     usersMap[element.key].lastName
+    //                   }`}
+    //                 </TableCell>
+    //                 <TableCell align="right"></TableCell>
+    //                 <TableCell align="right"></TableCell>
+    //               </TableRow>
+    //               <TableRow>
+    //                 <TableCell>รายการอาหาร</TableCell>
+    //                 <TableCell align="right">จำนวน</TableCell>
+    //                 <TableCell align="right">ราคา</TableCell>
+    //               </TableRow>
+    //             </TableHead>
+    //             <TableBody>
+    //               {Object.keys(element.value).map((key) => (
+    //                 <TableRow key={element.value[key].foodName}>
+    //                   <TableCell component="th" scope="row">
+    //                     {element.value[key].foodName}
+    //                   </TableCell>
+    //                   <TableCell align="right">
+    //                     {element.value[key].count}
+    //                   </TableCell>
+    //                   <TableCell align="right">
+    //                     {element.value[key].price}
+    //                   </TableCell>
+    //                 </TableRow>
+    //               ))}
+    //             </TableBody>
+    //           </Table>
+    //         </TableContainer>
+    //       </div>
+    //     );
+    //   })
+    // );
   }
+
+  if (!isLoaded(billing)) return <OrdersLoading />;
 
   return (
     <div className={classes.root}>
-      <TableContainer component={Paper}>
-        <Table className={classes.table} aria-label="billing table">
-          <TableHead>
-            <TableRow>
-              <TableCell>รายการอาหาร</TableCell>
-              <TableCell align="right">จำนวน</TableCell>
-              <TableCell align="right">ราคา</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {!isEmpty(billing) &&
-              billing.map((order, ind) => (
-                <TableRow key={order.value.foodName}>
-                  <TableCell component="th" scope="row">
-                    {order.value.foodName}
-                  </TableCell>
-                  <TableCell align="right">{order.value.count}</TableCell>
-                  <TableCell align="right">{order.value.price}</TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {!isEmpty(billing) && billing.map((bill) => tableView(bill.value))}
     </div>
   );
+
+  // return (
+  //   <div className={classes.root}>
+  //     <TableContainer component={Paper}>
+  //       <Table className={classes.table} aria-label="billing table">
+  //         <TableHead>
+  //           <TableRow>
+  //             <TableCell>รายการอาหาร</TableCell>
+  //             <TableCell align="right">จำนวน</TableCell>
+  //             <TableCell align="right">ราคา</TableCell>
+  //           </TableRow>
+  //         </TableHead>
+  //         <TableBody>
+  //           {!isEmpty(billing) &&
+  //             billing.map((order, ind) => (
+  //               <TableRow key={order.value.foodName}>
+  //                 <TableCell component="th" scope="row">
+  //                   {order.value.foodName}
+  //                 </TableCell>
+  //                 <TableCell align="right">{order.value.count}</TableCell>
+  //                 <TableCell align="right">{order.value.price}</TableCell>
+  //               </TableRow>
+  //             ))}
+  //         </TableBody>
+  //       </Table>
+  //     </TableContainer>
+  //   </div>
+  // );
 }
 
 BillingPage.propTypes = {

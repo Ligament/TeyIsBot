@@ -51,10 +51,10 @@ function handleEvent(event) {
     }
 
     case "follow":
-      return replyText(event.replyToken, "ยินดีต้อนรับสู่ Let eat.\nคุณสามารถหาร้านค้าและจองโต๊ะอาหารพร้อมสั่งอาหราล่วงหน้าได้");
+      return replyText(event.replyToken, "ยินดีต้อนรับสู่ Let eat.\nคุณสามารถหาร้านค้าและจองโต๊ะอาหารพร้อมสั่งอาหารล่วงหน้าได้");
 
     case "unfollow":
-      client.unlinkRichMenusFromMultipleUsers([event.source.userId]);
+      client.unlinkRichMenuFromUser(event.source.userId);
       fc.removeUser(event.source.userId);
       return console.log(`Unfollowed this bot: ${JSON.stringify(event)}`);
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Fragment } from "react";
 import PropTypes from "prop-types";
 import {
   isEmpty,
@@ -11,7 +11,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { useSelector } from "react-redux";
 import { useNotifications } from "modules/notification";
 import styles from "./OrdersPage.styles";
-import OrdersLoading from "../OrdersLoading";
+import OrdersLoading from "components/OrdersLoading";
 import {
   TableContainer,
   Table,
@@ -22,7 +22,7 @@ import {
   Paper,
   Button,
 } from "@material-ui/core";
-import MaterialTable, { MTablePagination } from "material-table";
+import MaterialTable, { MTableBody } from "material-table";
 
 const useStyles = makeStyles(styles);
 
@@ -40,6 +40,7 @@ function useOrders({ restaurantId }) {
     },
     {
       path: `restaurants/${restaurantId}/ordering`,
+      queryParams: ["orderByChild=book_time"],
       storeAs: "orderingCustomer",
     },
   ]);
@@ -71,12 +72,12 @@ function OrdersPage({ match }) {
 
   const { showSuccess } = useNotifications();
 
-  if (!isLoaded(orders) && !isLoaded(orderingCustomer)) {
+  if (!isLoaded(orders) || !isLoaded(profile)) {
     return <OrdersLoading />;
   }
-  
+
   if (profile.role !== "customer") {
-    if (!isLoaded(orderingCustomer) && !isLoaded(users) && !isLoaded(orders)) {
+    if (!isLoaded(orderingCustomer) || !isLoaded(users)) {
       return <OrdersLoading />;
     }
     const usersMap = {};
@@ -85,150 +86,222 @@ function OrdersPage({ match }) {
     });
 
     return (
-      !isEmpty(orderingCustomer) &&
-      orderingCustomer.map((element) => {
-        var ordersData = [];
-
-        if (!isEmpty(element)) {
-          ordersData = Object.keys(element.value).map((key) => ({
-            foodName: element.value[key].foodName,
-            qty: element.value[key].count,
-            unit: parseInt(element.value[key].price.split("฿")[1]),
-            price:
-              parseInt(element.value[key].price.split("฿")[1]) *
-              parseInt(element.value[key].count),
-          }));
-        }
-        return (
-          <div className={classes.root}>
-            <MaterialTable
-              title={`รายการอาหารของ ${usersMap[element.key].firstName} ${
-                usersMap[element.key].lastName
-              }`}
-              columns={[
-                { title: "รายการ", field: "foodName", editable: "never" },
-                { title: "จำนวน", field: "qty", type: "numeric" },
-                { title: "ราคาต่อหน่วย", field: "unit", editable: "never" },
-                { title: "ราคา (บาท)", field: "price", editable: "never" },
-              ]}
-              data={ordersData}
-              options={{
-                search: false,
-              }}
-              actions={[
-                {
-                  icon: "call",
-                  tooltip: `${usersMap[element.key].phoneNumber}`,
-                  isFreeAction: true,
-                  onClick: (event) => {
-                    alert(`Call to ${usersMap[element.key].phoneNumber}`);
-                    window.open(`tel:${usersMap[element.key].phoneNumber}`);
-                  },
-                },
-                {
-                  icon: "done",
-                  tooltip: "Done",
-                  isFreeAction: true,
-                  onClick: (event) => {
-                    alert("Menu is done");
-                    firebase
-                      .set(
-                        `restaurants/${restaurantId}/ordered/${element.key}`,
-                        element.value
-                      )
-                      .then(() =>
-                        firebase.remove(
-                          `restaurants/${restaurantId}/ordering/${element.key}`
-                        )
-                      );
-                  },
-                },
-              ]}
-            />
-          </div>
-        );
-      })
+      <div className={classes.root}>
+        {!isEmpty(orderingCustomer) &&
+          orderingCustomer.map((usersOrders) =>
+            Object.keys(usersOrders.value).map((uov) => {
+              var usersOrder = usersOrders.value[uov];
+              var ordersData = Object.keys(usersOrder).map((key) => ({
+                foodName: usersOrder[key].foodName,
+                qty: usersOrder[key].count,
+                unit: parseInt(usersOrder[key].price.split("฿")[1]),
+                price:
+                  parseInt(usersOrder[key].price.split("฿")[1]) *
+                  parseInt(usersOrder[key].count),
+              }));
+              return (
+                <MaterialTable
+                  title={`รายการอาหารของ ${
+                    usersMap[usersOrders.key].firstName
+                  } ${usersMap[usersOrders.key].lastName}`}
+                  columns={[
+                    { title: "รายการ", field: "foodName", editable: "never" },
+                    {
+                      title: "จำนวน",
+                      field: "qty",
+                      type: "numeric",
+                      width: 70,
+                    },
+                    {
+                      title: "ราคาต่อหน่วย",
+                      field: "unit",
+                      editable: "never",
+                      width: 140,
+                    },
+                    {
+                      title: "ราคา (บาท)",
+                      field: "price",
+                      editable: "never",
+                      width: 135,
+                    },
+                  ]}
+                  data={ordersData}
+                  options={{
+                    search: false,
+                    paging: false,
+                  }}
+                  actions={[
+                    {
+                      icon: "call",
+                      tooltip: `${usersMap[usersOrders.key].phoneNumber}`,
+                      isFreeAction: true,
+                      onClick: (event) => {
+                        alert(
+                          `Call to ${usersMap[usersOrders.key].phoneNumber}`
+                        );
+                        window.open(
+                          `tel:${usersMap[usersOrders.key].phoneNumber}`
+                        );
+                      },
+                    },
+                    {
+                      icon: "done",
+                      tooltip: "Done",
+                      isFreeAction: true,
+                      onClick: (event) => {
+                        firebase
+                          .set(
+                            `restaurants/${restaurantId}/ordered/${usersOrders.key}/${uov}`,
+                            usersOrders.value[uov]
+                          )
+                          .then(() =>
+                            firebase
+                              .remove(
+                                `restaurants/${restaurantId}/ordering/${usersOrders.key}/${uov}`
+                              )
+                              .then(() =>
+                                firebase.remove(
+                                  `orders_process/${usersOrders.key}/ordering/${restaurantId}`
+                                )
+                              )
+                          );
+                        firebase.set(
+                          `orders_process/${usersOrders.key}/ordered/${restaurantId}`,
+                          {
+                            restaurant: restaurantId,
+                          }
+                        );
+                      },
+                    },
+                  ]}
+                  style={{ width: "100%", maxWidth: 768, marginBottom: 16 }}
+                />
+              );
+            })
+          )}
+      </div>
     );
   }
 
   var ordersData = [];
+  var totalPrice = 0;
   if (!isEmpty(orders)) {
-    ordersData = orders.map((order) => ({
-      foodName: order.value.foodName,
-      qty: order.value.count,
-      unit: parseInt(order.value.price.split("฿")[1]),
-      price:
-        parseInt(order.value.price.split("฿")[1]) * parseInt(order.value.count),
-      key: order.key,
-    }));
+    ordersData = orders.map((order) => {
+      const price =
+        parseInt(order.value.price.split("฿")[1]) * parseInt(order.value.count);
+      totalPrice += price;
+      return {
+        foodName: order.value.foodName,
+        qty: order.value.count,
+        unit: parseInt(order.value.price.split("฿")[1]),
+        price: price,
+        key: order.key,
+      };
+    });
   }
 
   return (
-    <MaterialTable
-      title="รายการอาหารที่สั่ง"
-      columns={[
-        { title: "รายการ", field: "foodName", editable: "never" },
-        { title: "จำนวน", field: "qty", type: "numeric" },
-        { title: "ราคาต่อหน่วย", field: "unit", editable: "never" },
-        { title: "ราคา (บาท)", field: "price", editable: "never" },
-        { title: "", field: "key", hidden: true },
-      ]}
-      data={ordersData}
-      options={{
-        search: false,
-        
-      }}
-      editable={{
-        //isEditable: rowData => rowData.name === "birthYear",
-        onRowUpdate: (newData) =>
-          firebase.update(
-            `restaurants/${restaurantId}/orders/${auth.uid}/${newData.key}`,
-            { count: newData.qty }
+    <div className={classes.root}>
+      <MaterialTable
+        title="รายการอาหารที่สั่ง"
+        columns={[
+          { title: "รายการ", field: "foodName", editable: "never" },
+          { title: "จำนวน", field: "qty", type: "numeric", width: 70 },
+          {
+            title: "ราคาต่อหน่วย",
+            field: "unit",
+            type: "numeric",
+            editable: "never",
+            width: 140,
+          },
+          {
+            title: "ราคา (บาท)",
+            field: "price",
+            type: "numeric",
+            editable: "never",
+            width: 135,
+          },
+          { title: "", field: "key", hidden: true },
+        ]}
+        data={ordersData}
+        options={{
+          search: false,
+          pageSize: ordersData.length,
+        }}
+        editable={{
+          onRowUpdate: (newData) =>
+            firebase.update(
+              `restaurants/${restaurantId}/orders/${auth.uid}/${newData.key}`,
+              { count: newData.qty }
+            ),
+          onRowDelete: (oldData) =>
+            firebase.remove(
+              `restaurants/${restaurantId}/orders/${auth.uid}/${oldData.key}`
+            ),
+        }}
+        components={{
+          Body: (props) => (
+            <Fragment>
+              <MTableBody {...props} />
+              <TableBody>
+                <TableRow>
+                  <TableCell colSpan={2} />
+                  <TableCell colSpan={2}>Total</TableCell>
+                  <TableCell align="right">{totalPrice}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Fragment>
           ),
-        onRowDelete: (oldData) =>
-          firebase.remove(
-            `restaurants/${restaurantId}/orders/${auth.uid}/${oldData.key}`
-          ),
-      }}
-      components={{
-        Pagination: (props) => (
-          <div>
-            <div
-              style={{
-                margin: "10px 10px",
-                right: 0,
-                bottom: 0,
-                display: "grid",
-              }}
-            >
-              <Button
-                onClick={(event) => {
-                  history.goBack();
-                  var order = {};
-                  orders.forEach((od) => (order[od.key] = od.value));
-                  firebase
-                    .set(
-                      `restaurants/${restaurantId}/ordering/${auth.uid}`,
-                      order
-                    )
-                    .then(() =>
-                      firebase.remove(
-                        `restaurants/${restaurantId}/orders/${auth.uid}`
-                      ).then(() => showSuccess("รายการอาหารถูกส่งให้พ่อครัวแล้ว"))
+          Pagination: () => (
+            <td style={{ display: "flex" }}>
+              <div className={classes.buttonBar}>
+                <Button
+                  onClick={(event) => {
+                    history.goBack();
+                    var order = {};
+                    orders.forEach((od) => (order[od.key] = od.value));
+                    firebase
+                      .push(
+                        `restaurants/${restaurantId}/ordering/${auth.uid}`,
+                        order
+                      )
+                      .then(() =>
+                        firebase
+                          .remove(
+                            `restaurants/${restaurantId}/orders/${auth.uid}`
+                          )
+                          .then(() =>
+                            firebase
+                              .remove(
+                                `orders_process/${auth.uid}/orders/${restaurantId}`
+                              )
+                              .then(() =>
+                                showSuccess("รายการอาหารถูกส่งให้พ่อครัวแล้ว")
+                              )
+                          )
+                      );
+                    firebase.set(
+                      `orders_process/${auth.uid}/ordering/${restaurantId}`,
+                      {
+                        restaurant: restaurantId,
+                      }
                     );
-                }}
-                color="primary"
-                variant="contained"
-                size="small"
-                disabled={isEmpty(orders)}
-              >
-                ยืนยันการสั่งอาหาร
-              </Button>
-            </div>
-          </div>
-        ),
-      }}
-    />
+                  }}
+                  color="primary"
+                  variant="contained"
+                  size="small"
+                  disabled={isEmpty(orders)}
+                  style={{ width: "100%" }}
+                >
+                  ยืนยันการสั่งอาหาร
+                </Button>
+              </div>
+            </td>
+          ),
+        }}
+        style={{ width: "100%", maxWidth: 768 }}
+      />
+    </div>
   );
 }
 

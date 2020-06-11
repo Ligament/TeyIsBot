@@ -1,11 +1,10 @@
 export default theme => ({
   root: {
     ...theme.flexColumnCenter,
-    paddingTop: theme.spacing(4),
     flexGrow: '2',
     boxSizing: 'border-box',
-    // overflowY: 'scroll'
-    paddingBottom: 66
+    overflowX: 'auto',
+    padding: theme.spacing(2, 1, 8)
   },
   tableUser: {
     paddingTop: 8,

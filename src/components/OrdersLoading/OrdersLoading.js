@@ -18,18 +18,22 @@ function OrdersLoading() {
   const classes = useStyles();
   return (
     <div className={classes.root}>
-      <TableContainer component={Paper}>
-        <Table className={classes.table} aria-label="simple table">
+      <TableContainer component={Paper} className={classes.table}>
+        <Table aria-label="loading table">
           <TableHead>
             <TableRow>
               <TableCell>รายการอาหาร</TableCell>
               <TableCell align="right">จำนวน</TableCell>
-              <TableCell align="right">ราคา</TableCell>
+              <TableCell align="right">ราคาต่อหน่วย</TableCell>
+              <TableCell align="right">ราคา (บาท)</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             <TableRow key="loading">
               <TableCell component="th" scope="row">
+                <Skeleton />
+              </TableCell>
+              <TableCell align="right">
                 <Skeleton />
               </TableCell>
               <TableCell align="right">

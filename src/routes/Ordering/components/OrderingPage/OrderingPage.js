@@ -11,7 +11,6 @@ import { useSelector } from "react-redux";
 import { useNotifications } from "modules/notification";
 import styles from "./OrderingPage.styles";
 import MaterialTable from "material-table";
-
 import {
   TableContainer,
   Table,
@@ -21,7 +20,7 @@ import {
   TableBody,
   Paper,
 } from "@material-ui/core";
-import OrdersLoading from "routes/Orders/components/OrdersLoading";
+import OrdersLoading from "components/OrdersLoading";
 
 const useStyles = makeStyles(styles);
 
@@ -46,13 +45,13 @@ function useOrdering({ restaurantId }) {
   ]);
 
   // Get projects from redux state
-  const orders = useSelector((state) => state.firebase.ordered.ordering);
+  const ordering = useSelector((state) => state.firebase.ordered.ordering);
   const orderedCustomer = useSelector(
     (state) => state.firebase.ordered.orderedCustomer
   );
   const users = useSelector((state) => state.firebase.ordered.users);
 
-  return { firebase, auth, profile, orders, orderedCustomer, users };
+  return { firebase, auth, profile, ordering, orderedCustomer, users };
 }
 
 function OrderingPage({ match }) {
@@ -63,144 +62,14 @@ function OrderingPage({ match }) {
     firebase,
     auth,
     profile,
-    orders,
+    ordering,
     orderedCustomer,
     users,
   } = useOrdering({
     restaurantId: restaurantId,
   });
 
-  if (!isLoaded(orders)) {
-    return <OrdersLoading />;
-  }
-  if (profile.role !== "customer" && !isLoaded(orderedCustomer)) {
-    return <OrdersLoading />;
-  }
-
-  // if (profile.role !== "customer") {
-  //   if (!isLoaded(orderedCustomer) && !isLoaded(users)) {
-  //     return <OrdersLoading />;
-  //   }
-  //   const usersMap = {};
-  //   users.forEach((element) => {
-  //     usersMap[element.key] = element.value;
-  //   });
-
-  //   return (
-  //     !isEmpty(orderedCustomer) &&
-  //     orderedCustomer.map((element) => {
-  //       var ordersData = [];
-
-  //       if (!isEmpty(element)) {
-  //         ordersData = Object.keys(element.value).map((key) => ({
-  //           foodName: element.value[key].foodName,
-  //           qty: element.value[key].count,
-  //           unit: parseInt(element.value[key].price.split("฿")[1]),
-  //           price:
-  //             parseInt(element.value[key].price.split("฿")[1]) *
-  //             parseInt(element.value[key].count),
-  //         }));
-  //       }
-  //       return (
-  //         <Paper>
-  //           <MaterialTable
-  //             title={`รายการอาหารของ ${usersMap[element.key].firstName} ${
-  //               usersMap[element.key].lastName
-  //             }`}
-  //             columns={[
-  //               { title: "รายการ", field: "foodName", editable: "never" },
-  //               { title: "จำนวน", field: "qty", type: "numeric" },
-  //               { title: "ราคาต่อหน่วย", field: "unit", editable: "never" },
-  //               { title: "ราคา (บาท)", field: "price", editable: "never" },
-  //             ]}
-  //             data={ordersData}
-  //             options={{
-  //               search: false,
-  //               paging: false
-  //             }}
-  //             actions={[
-  //               {
-  //                 icon: "receipt",
-  //                 tooltip: "Check bill",
-  //                 isFreeAction: true,
-  //                 onClick: (event) => {
-  //                   firebase
-  //                     .set(
-  //                       `restaurants/${restaurantId}/billing/${element.key}`,
-  //                       element.value
-  //                     )
-  //                     .then(() =>
-  //                       firebase.remove(
-  //                         `restaurants/${restaurantId}/ordered/${element.key}`
-  //                       )
-  //                     );
-  //                 },
-  //               },
-  //             ]}
-  //           />
-  //         </Paper>
-  //       );
-  //     })
-  //   );
-  // }
-
-  if (profile.role !== "customer") {
-    if (!isLoaded(orderedCustomer) && !isLoaded(users)) {
-      return <OrdersLoading />;
-    }
-    const usersMap = {};
-    users.forEach((element) => {
-      usersMap[element.key] = element.value;
-    });
-
-    return (
-      <div className={classes.root}>
-        {!isEmpty(orderedCustomer) &&
-          orderedCustomer.map((element) => {
-            return (
-              <div className={classes.tableUser}>
-                <TableContainer component={Paper}>
-                  <Table className={classes.table} aria-label="simple table">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>
-                          รายการอาหารของ{" "}
-                          {`${usersMap[element.key].firstName} ${
-                            usersMap[element.key].lastName
-                          }`}
-                        </TableCell>
-                        <TableCell align="right"></TableCell>
-                        <TableCell align="right"></TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>รายการอาหาร</TableCell>
-                        <TableCell align="right">จำนวน</TableCell>
-                        <TableCell align="right">ราคา</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {Object.keys(element.value).map((key) => (
-                        <TableRow key={element.value[key].foodName}>
-                          <TableCell component="th" scope="row">
-                            {element.value[key].foodName}
-                          </TableCell>
-                          <TableCell align="right">
-                            {element.value[key].count}
-                          </TableCell>
-                          <TableCell align="right">
-                            {element.value[key].price}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </div>
-            );
-          })}
-      </div>
-    );
-  }
+  if (!isLoaded(profile)) return <OrdersLoading />;
 
   function ccyFormat(num) {
     return `${num.toFixed(2)}`;
@@ -216,49 +85,83 @@ function OrderingPage({ match }) {
 
   var total = 0;
 
+  const tableView = (orders, showOwner = false, usersData = {}) => (
+    <TableContainer
+      component={Paper}
+      style={{ width: "100%", maxWidth: 768, marginBottom: 16 }}
+    >
+      <Table className={classes.table} aria-label="ordering table">
+        <TableHead>
+          {showOwner && (
+            <TableRow>
+              <TableCell>
+                รายการอาหารของ {`${usersData.firstName} ${usersData.lastName}`}
+              </TableCell>
+              <TableCell align="right"></TableCell>
+              <TableCell align="right"></TableCell>
+            </TableRow>
+          )}
+          <TableRow>
+            <TableCell>รายการอาหาร</TableCell>
+            <TableCell align="right">จำนวน</TableCell>
+            <TableCell align="right">ราคาต่อหน่วย</TableCell>
+            <TableCell align="right">ราคา (บาท)</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {Object.keys(orders).map((key) => {
+            const pricePerRow = priceRow(orders[key].count, orders[key].price);
+            total += pricePerRow;
+            return (
+              <TableRow key={orders[key].foodName}>
+                <TableCell component="th" scope="row">
+                  {orders[key].foodName}
+                </TableCell>
+                <TableCell align="right">{orders[key].count}</TableCell>
+                <TableCell align="right">
+                  {priceUnit(orders[key].price)}
+                </TableCell>
+                <TableCell align="right">{ccyFormat(pricePerRow)}</TableCell>
+              </TableRow>
+            );
+          })}
+          <TableRow>
+            <TableCell />
+            <TableCell colSpan={2}>Total</TableCell>
+            <TableCell align="right">{ccyFormat(total)}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  if (profile.role !== "customer") {
+    if (!isLoaded(orderedCustomer) || !isLoaded(users)) {
+      return <OrdersLoading />;
+    }
+    const usersMap = {};
+    users.forEach((element) => {
+      usersMap[element.key] = element.value;
+    });
+
+    if (!isEmpty(orderedCustomer)) {
+      return (
+        <div className={classes.root}>
+          {orderedCustomer.map((odc) =>
+            Object.keys(odc.value).map((key) =>
+              tableView(odc.value[key], true, usersMap[odc.key])
+            )
+          )}
+        </div>
+      );
+    }
+  }
+
+  if (!isLoaded(ordering)) return <OrdersLoading />;
+
   return (
     <div className={classes.root}>
-      <TableContainer component={Paper}>
-        <Table className={classes.table} aria-label="simple table">
-          <TableHead>
-            <TableRow>
-              <TableCell>รายการอาหาร</TableCell>
-              <TableCell align="right">จำนวน</TableCell>
-              <TableCell align="right">ราคาต่อหน่วย</TableCell>
-              <TableCell align="right">ราคา (บาท)</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {!isEmpty(orders) &&
-              orders.map((order, ind) => {
-                const pricePerRow = priceRow(
-                  order.value.count,
-                  order.value.price
-                );
-                total += pricePerRow;
-                return (
-                  <TableRow key={order.value.foodName}>
-                    <TableCell component="th" scope="row">
-                      {order.value.foodName}
-                    </TableCell>
-                    <TableCell align="right">{order.value.count}</TableCell>
-                    <TableCell align="right">
-                      {priceUnit(order.value.price)}
-                    </TableCell>
-                    <TableCell align="right">
-                      {ccyFormat(pricePerRow)}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            <TableRow>
-              <TableCell />
-              <TableCell colSpan={2}>Total</TableCell>
-              <TableCell align="right">{ccyFormat(total)}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {!isEmpty(ordering) && ordering.map((orders) => tableView(orders.value))}
     </div>
   );
 }

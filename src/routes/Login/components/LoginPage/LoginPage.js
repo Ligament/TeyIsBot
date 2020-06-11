@@ -89,39 +89,44 @@ function LoginPage() {
   //     setValues({ isLoaded: true, oneTimeLogin: false });
   //   }
   // }
+  if (!liff.isInit()) return <LoadingSpinner />;
 
-  useEffect(() => {
-    if (!liff.isInit()) {
-      return <LoadingSpinner />;
-    } else {
-      if (liff.isLoggedIn() && values.oneTimeLogin) {
-        setValues({ isLoaded: false, oneTimeLogin: false });
-        liff.getProfile().then((profile) =>
-          getFirebaseToken(profile)
-            .then((data) =>
-              firebase
-                .login({
-                  token: data.firebase_token,
-                })
-                .then(({ user: { user } }) =>
-                  firebase
-                    .update(`users/${user.uid}/`, {
-                      lineId: profile.userId,
-                    })
-                    .then(() => setValues({ isLoaded: true }))
-                )
-            )
-            .catch((err) => {
-              console.log("err", err);
-              setValues({ isLoaded: true });
-              return history.push(SIGNUP_PATH);
+  if (liff.isLoggedIn() && values.oneTimeLogin) {
+    setValues({ isLoaded: false, oneTimeLogin: false });
+    liff.getProfile().then((profile) =>
+      getFirebaseToken(profile)
+        .then((data) =>
+          firebase
+            .login({
+              token: data.firebase_token,
             })
-        );
-      } else if (!liff.isLoggedIn() && values.oneTimeLogin) {
-        setValues({ isLoaded: true, oneTimeLogin: false });
-      }
-    }
-  }, [firebase, history, values]);
+            .then(({ user: { user } }) =>
+              firebase
+                .update(`users/${user.uid}/`, {
+                  lineId: profile.userId,
+                })
+                .then(() => setValues({ isLoaded: true }))
+            )
+        )
+        .catch((err) => {
+          console.log("err", err);
+          setValues({ isLoaded: true });
+          return history.push(SIGNUP_PATH);
+        })
+    );
+  } else if (!liff.isLoggedIn() && values.oneTimeLogin) {
+    setValues({ isLoaded: true, oneTimeLogin: false });
+  }
+
+  if (!values.isLoaded) return <LoadingSpinner />;
+
+  // useEffect(() => {
+  //   if (!liff.isInit()) {
+  //     return <LoadingSpinner />;
+  //   } else {
+      
+  //   }
+  // }, [firebase, history, values]);
 
   // useEffect(() => {
   //   liff.login();

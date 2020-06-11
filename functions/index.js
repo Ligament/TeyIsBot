@@ -300,24 +300,91 @@ exports.scheduledNotificationReceiveTable = functions.pubsub
       .limitToFirst(99)
       .once("value", (snapshot) => {
         const nowDate = new Date();
+
         snapshot.forEach((data) => {
           const dataVal = data.val();
           const elapsedTime = Math.floor(
-            (nowDate.getTime() - dataVal.date) / 1000 / 60 / 60
+            (dataVal.date - nowDate.getTime()) / 1000 / 60 / 60
           );
-          if (elapsedTime === -1 && dataVal.notification) {
+          const elapsedTimeMin = Math.floor(
+            (dataVal.date - nowDate.getTime()) / 1000 / 60
+          );
+          if (elapsedTime <= 1 && dataVal.notification) {
             data.ref.update({ notification: false });
             if (dataVal.lineId) {
+              var message =
+                elapsedTime === 1
+                  ? `อีก ${elapsedTime} ชั่วโมง `
+                  : `อีก ${elapsedTimeMin} นาที `;
+              message += `จะถึงเวลาที่คุณจองโต๊ะ ณ ร้าน ${String(
+                dataVal.restaurant
+              )}`;
               line.client.pushMessage(dataVal.lineId, {
                 type: "text",
-                text:
-                  "อีก 1 ชั่วโมงจะถึงเวลาที่คุณจองโต๊ะ ณ ร้าน " +
-                  String(dataVal.restaurant),
+                text: message,
               });
             }
           }
         });
       });
+  });
+
+exports.ordersProgressNotification = functions.database
+  .ref("/orders_process/{userId}/{process}/{restaurantId}/restaurant")
+  .onCreate((snapshot, context) => {
+    // Grab the current value of what was written to the Realtime Database.
+    const restaurant = snapshot.val();
+
+    // You must return a Promise when performing asynchronous tasks inside a Functions such as
+    // writing to the Firebase Realtime Database.
+    db.ref(`users/${context.params.userId}`).once("value", (userSnap) => {
+      let userData = userSnap.val();
+      var message = "";
+      switch (context.params.process) {
+        case "ordering":
+          return db
+            .ref("users")
+            .orderByChild("restaurant")
+            .equalTo(context.params.restaurantId)
+            .once("value", (snap) => {
+              snap.forEach((users) => {
+                let user = users.val();
+                if (user.lineId) {
+                  message = `มีออเดอร์ใหม่จากคุณ ${userData.displayName}`;
+                  line.client.pushMessage(user.lineId, {
+                    type: "text",
+                    text: message,
+                  });
+                }
+              });
+            });
+        case "ordered":
+          message = "ออเดอร์ของคุณเสร็จแล้ว";
+          return line.client.pushMessage(userData.lineId, {
+            type: "text",
+            text: message,
+          });
+        case "wait_billing":
+          return db
+            .ref("users")
+            .orderByChild("restaurant")
+            .equalTo(context.params.restaurantId)
+            .once("value", (snap) => {
+              snap.forEach((users) => {
+                let user = users.val();
+                if (user.lineId) {
+                  message = `มีการเรียกเก็บเงินจากคุณ ${userData.displayName}`;
+                  line.client.pushMessage(user.lineId, {
+                    type: "text",
+                    text: message,
+                  });
+                }
+              });
+            });
+        default:
+          return null;
+      }
+    });
   });
 
 //==================================================================//
@@ -353,7 +420,7 @@ exports.removeUser = (uid) => {
       const richId = db.ref("line_constance/liff");
       richId.once("value", (shot) => {
         var id = shot.val();
-        line.client.linkRichMenuToUser(lineId, id.signup);
+        line.client.unlinkRichMenuFromUser(lineId);
       });
       users.child(uid).remove();
       return console.log("Successfully deleted user");

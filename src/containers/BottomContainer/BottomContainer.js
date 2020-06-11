@@ -1,7 +1,5 @@
 import React, { useEffect, Fragment } from "react";
 import { useHistory } from "react-router-dom";
-import Alert from "@material-ui/lab/Alert";
-import { makeStyles } from "@material-ui/core/styles";
 import { useSelector } from "react-redux";
 import { useFirebase, useFirebaseConnect } from "react-redux-firebase";
 import {
@@ -13,14 +11,12 @@ import {
   LOGIN_PATH,
   RESTAURANTS_PATH,
 } from "constants/paths";
-import styles from "./BottomContainer.styles";
 import Fabs from "containers/Fabs";
 import BottomNavbar from "containers/BottomNavbar";
 import NewFoodMenuDialog from "./AddFoodMenuDialog";
 import { useNotifications } from "modules/notification";
 import AddTableDialog from "./AddTableDialog";
 
-const useStyles = makeStyles(styles);
 const mapPath = [
   BOOK_A_TABLE_PATH,
   FOOD_MENU_PATH,
@@ -84,38 +80,10 @@ function addFoodMenus(props) {
       });
   }
 
-  function editTable(editInstance) {
-    if (!auth.uid) {
-      return showError("You must be logged in to add a table");
-    }
-    if (profile.role === "customer") {
-      return showError("You cannot add a table");
-    }
-    return firebase
-      .update(`table_set/${editInstance.id}`, {
-        tableNumber: editInstance.tableNumber,
-        tablePositionX: editInstance.tablePositionX,
-        tablePositionY: editInstance.tablePositionY,
-        tableSize: editInstance.tableSize,
-        modifyBy: auth.uid,
-        modifyAt: firebase.database.ServerValue.TIMESTAMP,
-      })
-      .then(() => {
-        // toggleEditDialog();
-        showSuccess("Table edit successfully");
-      })
-      .catch((err) => {
-        console.error("Error:", err); // eslint-disable-line no-console
-        showError(err.message || "Could not edit table");
-        return Promise.reject(err);
-      });
-  }
-
   return { addMenu, addTable };
 }
 
 function BottomContainer() {
-  const classes = useStyles();
   const [values, setValues] = React.useState({
     addTable: false,
     addFoodMenus: false,
@@ -132,19 +100,10 @@ function BottomContainer() {
 
   useFirebaseConnect([
     {
-      path: "book_a_table",
-      queryParams: ["orderByChild=owner", `equalTo=${auth.uid}`],
-      storeAs: "bookATables",
-    },
-    {
       path: "users",
       storeAs: "users",
     },
   ]);
-
-  const bookATables = useSelector(
-    (state) => state.firebase.ordered.bookATables
-  );
 
   const { showSuccess, showError } = useNotifications();
 
@@ -171,6 +130,12 @@ function BottomContainer() {
       history.location.pathname.split("/")[1] === "billing"
     ) {
       setValue(3);
+    } else if (history.location.search) {
+      if (history.location.search.includes("?redirect=")) {
+        history.push(`${RESTAURANTS_PATH}`, {
+          redirect: "/" + history.location.search.split("?redirect=")[1],
+        });
+      }
     } else {
       setValue(mapPath.indexOf(`/${history.location.pathname.split("/")[1]}`));
     }

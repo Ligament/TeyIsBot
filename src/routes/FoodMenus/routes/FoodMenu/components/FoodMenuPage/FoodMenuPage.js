@@ -75,8 +75,8 @@ function MenuPage(props) {
 
   const handleClick = (event) => {
     if (count) {
-      firebase.set(`orders/${auth.uid}/orders/${restaurantId}`, {
-        restaurantId,
+      firebase.set(`orders_process/${auth.uid}/orders/${restaurantId}`, {
+        restaurant: restaurantId,
       });
       firebase
         .push(`restaurants/${restaurantId}/orders/${auth.uid}`, {
@@ -136,40 +136,46 @@ function MenuPage(props) {
         </CardContent>
       </Card>
       {profile.role === "customer" && (
-        <div className={classes.order}>
-          <ButtonGroup size="small">
+        <div className={classes.orderContainer}>
+          <div className={classes.order}>
+            <Paper className={classes.paperButtonGroup}>
+              <ButtonGroup size="small">
+                <Button
+                  color="secondary"
+                  aria-label="reduce"
+                  onClick={() => {
+                    setCount(Math.max(count - 1, 0));
+                  }}
+                >
+                  <RemoveIcon fontSize="small" />
+                </Button>
+                <OutlinedInput
+                  id="orderCount"
+                  type="number"
+                  value={count}
+                  margin="dense"
+                  className={classes.qty}
+                ></OutlinedInput>
+                <Button
+                  color="primary"
+                  aria-label="increase"
+                  onClick={() => {
+                    setCount(count + 1);
+                  }}
+                >
+                  <AddIcon fontSize="small" />
+                </Button>
+              </ButtonGroup>
+            </Paper>
             <Button
-              aria-label="reduce"
-              onClick={() => {
-                setCount(Math.max(count - 1, 0));
-              }}
+              variant="contained"
+              color="primary"
+              className={classes.confirmButton}
+              onClick={handleClick}
             >
-              <RemoveIcon fontSize="small" />
+              สั่ง
             </Button>
-            <OutlinedInput
-              id="orderCount"
-              type="number"
-              value={count}
-              margin="dense"
-              className={classes.qty}
-            ></OutlinedInput>
-            <Button
-              aria-label="increase"
-              onClick={() => {
-                setCount(count + 1);
-              }}
-            >
-              <AddIcon fontSize="small" />
-            </Button>
-          </ButtonGroup>
-          <Button
-            variant="contained"
-            color="primary"
-            style={{ right: 0, position: "absolute", height: 40 }}
-            onClick={handleClick}
-          >
-            สั่ง
-          </Button>
+          </div>
         </div>
       )}
     </div>
