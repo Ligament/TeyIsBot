@@ -350,7 +350,7 @@ exports.ordersProgressNotification = functions.database
               snap.forEach((users) => {
                 let user = users.val();
                 if (user.lineId) {
-                  message = `มีออเดอร์ใหม่จากคุณ ${userData.displayName}`;
+                  message = `มีออเดอร์ใหม่จากคุณ ${userData.firstName} ${userData.lastName}`;
                   line.client.pushMessage(user.lineId, {
                     type: "text",
                     text: message,
@@ -373,7 +373,7 @@ exports.ordersProgressNotification = functions.database
               snap.forEach((users) => {
                 let user = users.val();
                 if (user.lineId) {
-                  message = `มีการเรียกเก็บเงินจากคุณ ${userData.displayName}`;
+                  message = `มีการเรียกเก็บเงินจากคุณ ${userData.firstName} ${userData.lastName}`;
                   line.client.pushMessage(user.lineId, {
                     type: "text",
                     text: message,

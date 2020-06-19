@@ -62,7 +62,7 @@ function useTables({ restaurantId }) {
     changeDialogState({ ...dialogOpen, [prop]: !dialogOpen[prop] });
   };
 
-  const bookATable = (table) => ({ date, cookNow }) => {
+  const bookATable = (table, customer = true) => ({ date, cookNow }) => {
     if (!auth.uid) {
       return showError("You must be logged in to book a table");
     }
@@ -74,16 +74,16 @@ function useTables({ restaurantId }) {
         cookNow,
         restaurant: restaurantId,
         tableId: table.id,
-        owner: auth.uid,
+        owner: customer ? auth.uid : "restaurant",
         createdAt: firebase.database.ServerValue.TIMESTAMP,
-        lineId: profile.lineId ? profile.lineId : null,
+        lineId: (profile.lineId && customer) ? profile.lineId : null,
         notification: true,
       })
       .then((snapshot) =>
         firebase
           .update(`restaurants/${restaurantId}/table_set/${table.id}`, {
             isEmpty: false,
-            reservationBy: auth.uid,
+            reservationBy: customer ? auth.uid : "restaurant",
             bookId: snapshot.key,
             time: date.getTime(),
           })
@@ -285,13 +285,6 @@ function BookATablePage(props) {
         handleDelete={() => deleteTable(selectTable)}
         handleCancel={() => cancelBookATable(selectTable, false)}
       />
-      {/* <DeleteTableReservationDialog
-        // onSubmit={editTable}
-        open={dialogOpen.deleteDialogOpen}
-        handleOk={() => deleteTable(selectTable)}
-        onRequestClose={toggleDialog("deleteDialogOpen")}
-        tableNumber={selectTable.tableNumber}
-      /> */}
       <BookATableDialog
         open={dialogOpen.confirmDialogOpen}
         onSubmit={bookATable(selectTable)}

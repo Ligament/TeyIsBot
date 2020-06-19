@@ -127,7 +127,7 @@ function FilterDisplay({
   userOrdered,
   classes,
 }) {
-  if (redirect === "/menu") {
+  if (redirect === "/menu" && bookATableFilter.length) {
     return <DisplayWithFilter filter={bookATableFilter} data={restaurants} />;
   } else if (redirect === "/order") {
     if (!isLoaded(userOrders)) return <Loading classes={classes} />;

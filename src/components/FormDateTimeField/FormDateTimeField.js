@@ -5,7 +5,7 @@ import DateFnsUtils from "@date-io/date-fns";
 
 function FormTextField({
   label,
-  input: { value, onChange },
+  input,
   meta: { touched, invalid, error },
   variant,
   ...custom
@@ -13,8 +13,8 @@ function FormTextField({
   const [selectedDate, handleDateChange] = useState(new Date());
   // value = selectedDate;
   const handleChange = (event) => {
-    onChange(event)
     handleDateChange(event)
+    input.onChange(event)
   }
   return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
@@ -22,12 +22,13 @@ function FormTextField({
         autoOk
         label={label}
         ampm={false}
-        value={value}
+        value={selectedDate}
         onChange={handleChange}
-        minDate={new Date()}
         inputVariant={variant}
+        onError={(err,value) => {error = value}}
+        minDate={new Date().getTime()}
         format="dd/MM/yyyy HH:mm"
-        {...custom}
+        // {...input}
       />
     </MuiPickersUtilsProvider>
   );

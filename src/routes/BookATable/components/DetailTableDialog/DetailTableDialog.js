@@ -51,6 +51,11 @@ function DetailTableDialog({
                     } ${
                       table.reservationBy && users[table.reservationBy].lastName
                     }`}
+                {table.isEmpty && (
+                  <Button variant="contained" onClick={handleCancel} color={yellow[400]}>
+                    ทำเครื่องหมายให้โต๊ะนี้ไม่ว่าง
+                  </Button>
+                )}
               </DialogContentText>
             </Grid>
             {!table.isEmpty && table.time && (
@@ -67,9 +72,11 @@ function DetailTableDialog({
           <Button onClick={handleDelete} color={red[400]}>
             ลบโต๊ะนี้
           </Button>
-          <Button onClick={handleCancel} color={yellow[400]}>
-            ยกเลิกจองโต๊ะนี้
-          </Button>
+          {!table.isEmpty && (
+            <Button onClick={handleCancel} color={yellow[400]}>
+              ยกเลิกจองโต๊ะนี้
+            </Button>
+          )}
           <Button onClick={onRequestClose} color="primary">
             ตกลง
           </Button>
