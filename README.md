@@ -4,9 +4,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## [Demo](https://lin.ee/McYex7Z)
 
-<p align="center">
-	<img src="https://raw.githubusercontent.com/Ligament/TeyIsBot/master/M.png">
-</p>
+<img src="https://raw.githubusercontent.com/Ligament/TeyIsBot/master/M.png">
 <a href="https://lin.ee/McYex7Z"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/th.png" alt="เพิ่มเพื่อน" height="36" border="0"></a>
 
 ## Getting started
