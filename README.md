@@ -30,22 +30,22 @@ Create the *.env* file.
 
 The *.env* files could look like the following then:
 
-```
-REACT_APP_FIREBASE_CONFIG_BASE64=<your firebase configuration in base64 string>
-REACT_APP_LIFF_ID_MAIN=<liff id>
-REACT_APP_LIFF_ID_SIGN_UP=<iff id>
+```env
+REACT_APP_FIREBASE_CONFIG_BASE64=your-firebase-configuration-in-base64-string
+REACT_APP_LIFF_ID_MAIN=liffId
+REACT_APP_LIFF_ID_SIGN_UP=liffId
 ```
 
 Create the *.runtimeconfig.json* in *functions*
 
 The *.env* files could look like the following then:
 
-```
+```json
 {
   "line": {
-    "channel_secret": "<channel_secret>",
-    "channelid": "<channel id>",
-    "channel_access_token": "<channel_access_token>"
+    "channel_secret": "channel secret",
+    "channelid": "channel id",
+    "channel_access_token": "channel access token"
   }
 }
 ```
@@ -63,6 +63,7 @@ firebase deploy
 Download the *serviceAccount* from your Firebase project's dashboard into to your root directory.
 
 In your root directory run:
+
 ***PowerShell***
 ```powershell
 $env:GOOGLE_APPLICATION_CREDENTIALS="path/to/serviceAccount.json"
