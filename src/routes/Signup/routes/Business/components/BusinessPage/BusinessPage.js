@@ -1,6 +1,5 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useSelector } from "react-redux";
-import { useFirebase } from "react-redux-firebase";
 import { makeStyles } from "@material-ui/core/styles";
 import { useNotifications } from "modules/notification";
 import styles from "./BusinessPage.styles";
@@ -8,7 +7,6 @@ import liff from "utils/liff";
 import { businessSignup } from "store/user";
 import BusinessForm from "../BusinessForm";
 import { useHistory } from "react-router-dom";
-import { RESTAURANTS_PATH } from "constants/paths";
 
 const useStyles = makeStyles(styles);
 

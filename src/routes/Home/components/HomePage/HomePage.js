@@ -1,18 +1,10 @@
 import React from "react";
-import { useHistory, useLocation } from "react-router-dom";
 import styles from "./HomePage.styles";
 import { makeStyles, Typography } from "@material-ui/core";
-import { SIGNUP_PATH } from 'constants/paths'
 
 const useStyles = makeStyles(styles);
 
 function Home() {
-  const history = useHistory();
-  const search = useLocation().search
-  const params = new URLSearchParams(search);
-  // if (params.get('code')) {
-  //   history.push(SIGNUP_PATH)
-  // }
   const classes = useStyles();
   return (
     <div className={classes.root}>

@@ -11,10 +11,6 @@ import TextField from "components/FormTextField";
 import { required } from "utils/form";
 import styles from "./EditTableDialog.styles";
 import { Grid, MenuItem } from "@material-ui/core";
-import PrefixTextField from "components/FormPrefixTextField";
-import ImagePicker from 'react-image-picker'
-import { useFirebase } from "react-redux-firebase";
-import { useSelector } from "react-redux";
 import SelectField from "components/FormSelectField";
 
 const useStyles = makeStyles(styles);
@@ -22,7 +18,6 @@ const positionMap = ['4','6','8','10']
 
 function EditTableDialog({ handleSubmit, open, onRequestClose, tableData }) {
   const classes = useStyles();
-  const firebase = useFirebase();
   
   return (
     <Dialog open={open} onClose={onRequestClose}>

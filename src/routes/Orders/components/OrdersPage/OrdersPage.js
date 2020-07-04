@@ -13,13 +13,9 @@ import { useNotifications } from "modules/notification";
 import styles from "./OrdersPage.styles";
 import OrdersLoading from "components/OrdersLoading";
 import {
-  TableContainer,
-  Table,
-  TableHead,
   TableRow,
   TableCell,
   TableBody,
-  Paper,
   Button,
 } from "@material-ui/core";
 import MaterialTable, { MTableBody } from "material-table";

@@ -4,15 +4,13 @@ import { connectedRouterRedirect } from "redux-auth-wrapper/history4/redirect";
 import locationHelperBuilder from "redux-auth-wrapper/history4/locationHelper";
 import { createBrowserHistory } from "history";
 import LoadingSpinner from "components/LoadingSpinner";
-import { FOOD_MENU_PATH, SIGNUP_PATH, RESTAURANTS_PATH, SIGNUP_ROLE_PATH } from "constants/paths";
+import { RESTAURANTS_PATH, SIGNUP_ROLE_PATH } from "constants/paths";
 import liff from "./liff";
 
 const locationHelper = locationHelperBuilder({});
 const history = createBrowserHistory();
 
-const AUTHED_REDIRECT = "AUTHED_REDIRECT";
 const UNAUTHED_REDIRECT = "UNAUTHED_REDIRECT";
-const SIGNED_REDIRECT = "SIGNED_REDIRECT";
 
 /**
  * Higher Order Component that redirects to `/login` instead

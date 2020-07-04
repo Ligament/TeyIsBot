@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import PropTypes, { func } from "prop-types";
+import React from "react";
+import PropTypes from "prop-types";
 import {
   isEmpty,
   isLoaded,
@@ -8,9 +8,7 @@ import {
 } from "react-redux-firebase";
 import { makeStyles } from "@material-ui/core/styles";
 import { useSelector } from "react-redux";
-import { useNotifications } from "modules/notification";
 import styles from "./OrderingPage.styles";
-import MaterialTable from "material-table";
 import {
   TableContainer,
   Table,
@@ -25,7 +23,6 @@ import OrdersLoading from "components/OrdersLoading";
 const useStyles = makeStyles(styles);
 
 function useOrdering({ restaurantId }) {
-  const { showSuccess, showError } = useNotifications();
   const firebase = useFirebase();
   // Get auth from redux state
   const auth = useSelector((state) => state.firebase.auth);
@@ -59,8 +56,6 @@ function OrderingPage({ match }) {
   const restaurantId = match.params.restaurantId;
 
   const {
-    firebase,
-    auth,
     profile,
     ordering,
     orderedCustomer,

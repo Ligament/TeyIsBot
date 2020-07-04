@@ -5,23 +5,14 @@ import {
   isLoaded,
   useFirebase,
   useFirebaseConnect,
-  firebaseConnect,
 } from "react-redux-firebase";
-import { Route, Switch } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import { useSelector } from "react-redux";
-// import FoodMenuRoute from "routes/FoodMenus/routes/FoodMenu";
 import { useNotifications } from "modules/notification";
-import { renderChildren } from "utils/router";
 import LoadingSpinner from "components/LoadingSpinner";
 import DisplayTable from "../DisplayTable";
-import ReceiveTableDialog from "../ReceiveTableDialog";
-import AddTableDialog from "../AddTableDialog";
 import styles from "./BookATablePage.styles";
-import ConfirmTableReservationDialog from "../ActivityBookATableDialog/ConfirmTableReservationDialog";
 import CancelTableReservationDialog from "../ActivityBookATableDialog/CancelTableReservationDialog";
-import EditTableDialog from "../EditTableDialog";
-import DeleteTableReservationDialog from "../ActivityBookATableDialog/DeleteTableReservationDialog";
 import BookATableDialog from "../BookATableDialog";
 import DetailTableDialog from "../DetailTableDialog";
 
@@ -66,8 +57,6 @@ function useTables({ restaurantId }) {
     if (!auth.uid) {
       return showError("You must be logged in to book a table");
     }
-    console.log(date);
-    console.log("date", date.getTime());
     return firebase
       .push("book_a_table", {
         date: date.getTime(),
@@ -83,12 +72,12 @@ function useTables({ restaurantId }) {
         firebase
           .update(`restaurants/${restaurantId}/table_set/${table.id}`, {
             isEmpty: false,
-            reservationBy: customer ? auth.uid : "restaurant",
+            reservationBy: auth.uid,
             bookId: snapshot.key,
             time: date.getTime(),
           })
           .then(() => {
-            toggleDialog("confirmDialogOpen")();
+            customer ? toggleDialog("confirmDialogOpen")() : toggleDialog("detailDialogOpen")();
             showSuccess("Reservation successfully");
           })
           .catch((err) => {
@@ -183,7 +172,6 @@ function BookATablePage(props) {
   const classes = useStyles();
   const restaurantId = props.match.params.restaurantId;
   const {
-    auth,
     profile,
     tableImages,
     tableSet,
@@ -279,7 +267,7 @@ function BookATablePage(props) {
       <DetailTableDialog
         users={usersMap}
         open={dialogOpen.detailDialogOpen}
-        onSubmit={bookATable(selectTable)}
+        onSubmit={bookATable(selectTable, false)}
         table={selectTable}
         onRequestClose={toggleDialog("detailDialogOpen")}
         handleDelete={() => deleteTable(selectTable)}

@@ -5,7 +5,6 @@ import {
   isLoaded,
   useFirebase,
   useFirebaseConnect,
-  firebaseConnect,
 } from "react-redux-firebase";
 import { Route, Switch } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
@@ -13,10 +12,7 @@ import { useSelector } from "react-redux";
 import FoodMenuRoute from "routes/FoodMenus/routes/FoodMenu";
 import { useNotifications } from "modules/notification";
 import { renderChildren } from "utils/router";
-import LoadingSpinner from "components/LoadingSpinner";
 import FoodMenuCard from "../FoodMenuCard";
-import AddFoodMenu from "../AddFoodMenu";
-import NewFoodMenuDialog from "../NewFoodMenuDialog";
 import styles from "./FoodMenusPage.styles";
 import FoodMenuCardLoading from "../FoodMenuCardLoading";
 
@@ -115,11 +111,7 @@ function MenusPage({ match }) {
   const classes = useStyles();
   const {
     auth,
-    profile,
     menus,
-    addMenu,
-    newDialogOpen,
-    toggleDialog,
   } = useMenus({ restaurantId: match.params.restaurantId });
   
   // const foodMenuId = props.match.params.foodMenuId

@@ -11,10 +11,6 @@ import TextField from "components/FormTextField";
 import { required } from "utils/form";
 import styles from "./AddTableDialog.styles";
 import { Grid, MenuItem } from "@material-ui/core";
-import PrefixTextField from "components/FormPrefixTextField";
-import ImagePicker from 'react-image-picker'
-import { useFirebase } from "react-redux-firebase";
-import { useSelector } from "react-redux";
 import SelectField from "components/FormSelectField";
 
 const useStyles = makeStyles(styles);
@@ -22,9 +18,7 @@ const positionMap = ['4','6','8','10']
 
 function AddTableDialog({ handleSubmit, open, onRequestClose }) {
   const classes = useStyles();
-  const firebase = useFirebase();
-  const tableSet = useSelector((state) => state.firebase.ordered.table_set);
-  
+
   return (
     <Dialog open={open} onClose={onRequestClose}>
       <DialogTitle id="add-table-dialog-title">Add Table</DialogTitle>

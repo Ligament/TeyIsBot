@@ -2,7 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import { useHistory } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
-import { RESTAURANTS_PATH, BOOK_A_TABLE_PATH } from "constants/paths";
 import {
   Card,
   CardActionArea,

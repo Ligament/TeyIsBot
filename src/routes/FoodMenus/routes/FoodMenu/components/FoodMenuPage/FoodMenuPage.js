@@ -9,9 +9,8 @@ import {
   isLoaded,
   useFirebase,
 } from "react-redux-firebase";
-import { useParams, useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { useSelector } from "react-redux";
-import LoadingSpinner from "components/LoadingSpinner";
 import styles from "./FoodMenuPage.styles";
 import {
   ButtonGroup,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import {
   isEmpty,
@@ -6,12 +6,8 @@ import {
   useFirebase,
   useFirebaseConnect,
 } from "react-redux-firebase";
-import { Route, Switch } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import { useSelector } from "react-redux";
-import FoodMenuRoute from "routes/FoodMenus/routes/FoodMenu";
-import { useNotifications } from "modules/notification";
-import { renderChildren } from "utils/router";
 import styles from "./BillingPage.styles";
 import {
   TableContainer,
@@ -21,9 +17,7 @@ import {
   TableCell,
   TableBody,
   Paper,
-  Button,
 } from "@material-ui/core";
-import MaterialTable from "material-table";
 import OrdersLoading from "components/OrdersLoading";
 
 const useStyles = makeStyles(styles);
@@ -60,10 +54,7 @@ function useBilling({ restaurantId }) {
 function BillingPage({ match }) {
   const classes = useStyles();
   const restaurantId = match.params.restaurantId;
-  const { showSuccess } = useNotifications();
   const {
-    firebase,
-    auth,
     profile,
     billing,
     billingCustomer,

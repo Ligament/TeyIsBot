@@ -3,16 +3,13 @@ import PropTypes from "prop-types";
 import { useHistory } from "react-router-dom";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
-import { useFirebase } from "react-redux-firebase";
 import { FOOD_MENU_PATH } from "constants/paths";
 import styles from "./FoodMenuCard.styles";
-import useNotifications from "modules/notification/components/useNotifications";
 import {
   Card,
   CardActionArea,
   CardMedia,
   CardContent,
-  Grid,
 } from "@material-ui/core";
 
 const useStyles = makeStyles(styles);

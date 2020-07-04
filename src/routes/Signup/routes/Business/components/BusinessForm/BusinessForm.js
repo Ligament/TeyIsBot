@@ -4,7 +4,7 @@ import { Field } from "redux-form";
 import { makeStyles } from "@material-ui/core/styles";
 import { Button, Grid, MenuItem } from "@material-ui/core";
 import TextField from "components/FormTextField";
-import { required, validateEmail } from "utils/form";
+import { required } from "utils/form";
 import styles from "./BusinessForm.styles";
 import SelectField from "components/FormSelectField";
 import { useFirebaseConnect, isLoaded, isEmpty } from "react-redux-firebase";

@@ -6,12 +6,8 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import { makeStyles } from "@material-ui/core/styles";
-import { Field } from "redux-form";
-import { required } from "utils/form";
 import styles from "./DetailTableDialog.styles";
 import { Grid, DialogContentText, Typography } from "@material-ui/core";
-import DateTimeField from "components/FormDateTimeField";
-import Checkbox from "components/FormCheckbox";
 import red from "@material-ui/core/colors/red";
 import yellow from "@material-ui/core/colors/yellow";
 
@@ -51,13 +47,19 @@ function DetailTableDialog({
                     } ${
                       table.reservationBy && users[table.reservationBy].lastName
                     }`}
-                {table.isEmpty && (
-                  <Button variant="contained" onClick={handleCancel} color={yellow[400]}>
-                    ทำเครื่องหมายให้โต๊ะนี้ไม่ว่าง
-                  </Button>
-                )}
               </DialogContentText>
             </Grid>
+            {table.isEmpty && (
+              <Grid item>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  type="submit"
+                >
+                  ทำเครื่องหมายให้โต๊ะนี้ไม่ว่าง
+                </Button>
+              </Grid>
+            )}
             {!table.isEmpty && table.time && (
               <Grid item>
                 <Typography variant="caption" display="block" gutterBottom>

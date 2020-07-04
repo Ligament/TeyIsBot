@@ -1,12 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { BrowserRouter as Router } from "react-router-dom";
-import {
-  useMediaQuery,
-  responsiveFontSizes,
-  CssBaseline,
-  ThemeProvider,
-} from "@material-ui/core";
 import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/database";

@@ -8,7 +8,6 @@ import styles from "./BottomNavbar.styles";
 import {
   BottomNavigationAction,
   BottomNavigation,
-  Menu,
   MenuItem,
   Popper,
   Grow,

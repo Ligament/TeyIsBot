@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import {
   isEmpty,
@@ -6,12 +6,10 @@ import {
   useFirebase,
   useFirebaseConnect,
 } from "react-redux-firebase";
-import { Route, Switch, useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import { useSelector } from "react-redux";
-import FoodMenuRoute from "routes/FoodMenus/routes/FoodMenu";
 import { useNotifications } from "modules/notification";
-import { renderChildren } from "utils/router";
 import styles from "./OrderedPage.styles";
 import {
   TableContainer,
