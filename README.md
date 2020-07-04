@@ -1,68 +1,81 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+[![Build Status](https://travis-ci.com/Ligament/TeyIsBot.svg?branch=master)](https://travis-ci.com/Ligament/TeyIsBot)
 
-## Available Scripts
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). And using [Firebase](https://firebase.google.com/)
 
-In the project directory, you can run:
+## Getting started
 
-### `yarn start`
+### 1. Install Firebase CLI
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```bash
+npm install -g firebase-tools
+```
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+### 2. Clone the repo
 
-### `yarn test`
+```bash
+git clone https://github.com/Ligament/TeyIsBot.git
+```
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 3. Install dependencies.
 
-### `yarn build`
+```bash
+cd TeyIsBot
+npm install
+cd functions && npm install
+```
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 4. Firebase Configuration
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+Create the *.env* file.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+The *.env* files could look like the following then:
 
-### `yarn eject`
+```
+REACT_APP_FIREBASE_CONFIG_BASE64=<your firebase configuration in base64 string>
+REACT_APP_LIFF_ID_MAIN=<liff id>
+REACT_APP_LIFF_ID_SIGN_UP=<iff id>
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+Create the *.runtimeconfig.json* in *functions*
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+The *.env* files could look like the following then:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```
+{
+  "line": {
+    "channel_secret": "<channel_secret>",
+    "channelid": "<channel id>",
+    "channel_access_token": "<channel_access_token>"
+  }
+}
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### 5. Deployment process with firebase
 
-## Learn More
+In your root directory run:
+```bash
+yarn build
+firebase deploy
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Run in local
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Download the *serviceAccount* from your Firebase project's dashboard into to your root directory.
 
-### Code Splitting
+In your root directory run:
+***PowerShell***
+```powershell
+$env:GOOGLE_APPLICATION_CREDENTIALS="path/to/serviceAccount.json"
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+***Unix***
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS="path/to/serviceAccount.json"
+```
 
-### Analyzing the Bundle Size
+and run:
+```bash
+firebase emulators:start
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+More detail on [Firebase](https://firebase.google.com/docs/functions/local-emulator#set_up_admin_credentials_optional)
