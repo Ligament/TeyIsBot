@@ -1,5 +1,12 @@
 [![Build Status](https://travis-ci.com/Ligament/TeyIsBot.svg?branch=master)](https://travis-ci.com/Ligament/TeyIsBot)
 
+
+## [Demo](https://lin.ee/McYex7Z)
+
+<p align="center">
+	<img src="https://qr-official.line.me/sid/M/932uadig.png">
+</p>
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). And using [Firebase](https://firebase.google.com/)
 
 ## Getting started
